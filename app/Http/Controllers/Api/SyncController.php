@@ -125,9 +125,9 @@ class SyncController extends Controller
                 copy($source, $target);
             }
 
-            ActivityPhoto::create(
+            ActivityPhoto::updateOrCreate(
+                ['id' => $photo['id']],
                 [
-                    'id' => Str::uuid7(),
                     'session_id' => $photo['sessionId'],
                     'event_id' => $photo['eventId'],
                     'file_path' => "activity-photos/{$sessionId}/{$photo['filename']}",
