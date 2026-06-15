@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Table;
 
 #[Table('activity_events', keyType: 'string', incrementing: false, timestamps: false)]
-#[Fillable(['id', 'session_id', 'title', 'description', 'latitude', 'longitude', 'timest'])]
+#[Fillable(['id', 'session_id', 'title', 'description', 'latitude', 'longitude', 'timestamp'])]
 class ActivityEvent extends Model
 {
 
