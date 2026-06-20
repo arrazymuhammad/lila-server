@@ -17,6 +17,7 @@ Sebelum membuat iterasi baru, baca:
 1. .agents/AI_CONTEXT.md
 2. .agents/SYSTEM_ANALYSIS.md
 3. .agents/ROADMAP.md
+4. .agents/BACKLOG.md
 
 Kemudian baca seluruh iterasi sebelumnya:
 
@@ -26,6 +27,7 @@ Khususnya:
 
 * iteration.md
 * final_report.md
+* sprint_review.md
 
 Gunakan final_report.md sebagai sumber kebenaran mengenai hasil implementasi sebelumnya.
 
@@ -54,6 +56,7 @@ Sebelum menentukan iterasi berikutnya:
 5. Apa perubahan dengan nilai bisnis tertinggi?
 6. Apa perubahan dengan risiko terendah?
 7. Apakah perubahan dapat dilakukan secara incremental?
+8. Apakah terdapat item backlog yang lebih penting daripada roadmap aktif?
 
 ---
 
@@ -70,6 +73,14 @@ Sebelum menentukan iterasi berikutnya:
 Jika perubahan diperkirakan memerlukan banyak modul sekaligus:
 
 Pecah menjadi beberapa iterasi kecil.
+
+Jika terdapat item backlog dengan nilai bisnis lebih tinggi dibanding iterasi roadmap berikutnya:
+
+Jelaskan alasannya.
+
+Jangan otomatis mengubah roadmap.
+
+Berikan rekomendasi kepada Product Owner untuk diputuskan.
 
 ---
 

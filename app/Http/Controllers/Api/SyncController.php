@@ -97,6 +97,12 @@ class SyncController extends Controller
     {
         foreach ($events as $event) {
             $event['session_id'] = $sessionId;
+            
+            $existing = ActivityEvent::find($event['id']);
+            if (!$existing) {
+                $event['status'] = 'submitted';
+            }
+
             ActivityEvent::updateOrCreate(
                 ['id' => $event['id']],
                 $event

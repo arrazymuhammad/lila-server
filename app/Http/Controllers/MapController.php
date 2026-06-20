@@ -48,6 +48,7 @@ class MapController extends Controller
                     ->map(fn ($event) => [
                         'id' => $event->id,
                         'title' => $event->title ?? 'Temuan Tanpa Judul',
+                        'status' => $event->status,
                         'latitude' => (float) $event->latitude,
                         'longitude' => (float) $event->longitude,
                         'url' => url('findings', $event),
@@ -72,7 +73,7 @@ class MapController extends Controller
         $summary = [
             'total_routes' => $sessions->count(),
             'total_distance' => (float) $sessions->sum('distance'),
-            'total_findings' => (int) $sessions->sum('events_count'),
+            'total_findings' => (int) $sessions->flatMap->events->where('status', 'verified')->count(),
             'total_track_points' => (int) $sessions->sum('track_points_count'),
         ];
 

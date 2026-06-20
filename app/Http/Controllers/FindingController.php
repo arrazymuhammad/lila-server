@@ -11,6 +11,7 @@ class FindingController extends Controller
     public function index(Request $request)
     {
         $query = ActivityEvent::query()
+            ->where('status', 'verified')
             ->whereHas('session', fn($q) => $q->where('status', 'verified'))
             ->with(['session:id,title,start_time', 'photos'])
             ->withCount('photos');
@@ -44,7 +45,7 @@ class FindingController extends Controller
             ->orderByDesc('start_time')
             ->get(['id', 'title', 'start_time']);
 
-        $baseEventQuery = ActivityEvent::whereHas('session', fn($q) => $q->where('status', 'verified'));
+        $baseEventQuery = ActivityEvent::where('status', 'verified')->whereHas('session', fn($q) => $q->where('status', 'verified'));
 
         $summary = [
             'total_findings' => (clone $baseEventQuery)->count(),

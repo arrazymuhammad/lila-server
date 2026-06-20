@@ -17,7 +17,19 @@
                     <p class="mt-1 text-gray-500">Seluruh rute perjalanan pada bulan dan tahun terpilih.</p>
                 </div>
 
-                <form method="GET" action="{{ url('map') }}" class="flex flex-wrap items-end gap-3">
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer" title="Tampilkan temuan yang belum diverifikasi">
+                        <div class="relative">
+                            <input type="checkbox" x-model="showAllFindings" @change="toggleFindings" class="sr-only">
+                            <div class="block w-10 h-6 rounded-full transition" :class="showAllFindings ? 'bg-blue-600' : 'bg-gray-300'"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showAllFindings ? 'transform translate-x-4' : ''"></div>
+                        </div>
+                        <div class="ml-3 text-sm font-medium text-gray-700">
+                            Semua Temuan
+                        </div>
+                    </label>
+
+                    <form method="GET" action="{{ url('map') }}" class="flex flex-wrap items-end gap-3">
                     <label>
                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Bulan</span>
                         <select name="month"
@@ -42,7 +54,8 @@
                         class="h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
                         Terapkan
                     </button>
-                </form>
+                    </form>
+                </div>
             </div>
         </header>
 
@@ -105,6 +118,8 @@
                 map: null,
                 notice: '',
                 routes: @json($routes),
+                showAllFindings: localStorage.getItem('lila_show_all_findings') === 'true',
+                mapLayers: [],
 
                 initMap() {
                     this.map = L.map('all-routes-map');
@@ -117,8 +132,15 @@
                     this.renderRoutes();
                 },
 
+                toggleFindings() {
+                    localStorage.setItem('lila_show_all_findings', this.showAllFindings);
+                    this.mapLayers.forEach(layer => this.map.removeLayer(layer));
+                    this.mapLayers = [];
+                    this.renderRoutes();
+                },
+
                 renderRoutes() {
-                    const bounds = [];
+                    let bounds = [];
 
                     this.routes.forEach((route) => {
                         if (route.coordinates.length >= 2) {
@@ -135,20 +157,30 @@
                                 <a href="${route.url}">Detail Perjalanan</a>
                             `);
 
+                            this.mapLayers.push(polyline);
                             route.coordinates.forEach((coordinate) => bounds.push(coordinate));
                         }
 
                         route.findings.forEach((finding) => {
-                            L.circleMarker([finding.latitude, finding.longitude], {
+                            if (!this.showAllFindings && finding.status !== 'verified') {
+                                return;
+                            }
+
+                            const isSubmitted = finding.status === 'submitted';
+                            const markerColor = isSubmitted ? '#9ca3af' : route.color;
+
+                            const marker = L.circleMarker([finding.latitude, finding.longitude], {
                                 radius: 6,
-                                color: route.color,
-                                fillColor: route.color,
+                                color: markerColor,
+                                fillColor: markerColor,
                                 fillOpacity: 0.9
                             }).addTo(this.map).bindPopup(`
                                 <strong>${finding.title}</strong><br>
+                                <span class="text-xs text-gray-500 uppercase">${finding.status || 'unknown'}</span><br>
                                 <a href="${finding.url}">Detail Temuan</a>
                             `);
 
+                            this.mapLayers.push(marker);
                             bounds.push([finding.latitude, finding.longitude]);
                         });
                     });

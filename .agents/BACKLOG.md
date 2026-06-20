@@ -57,6 +57,33 @@ Mungkin membutuhkan koordinasi dengan aplikasi mobile.
 
 # MEDIUM PRIORITY
 
+## BL-006 — Iteration 3-B: Pengayaan Kategori Temuan oleh Operator
+
+Status:
+Planned
+
+Kategori:
+Feature — Lanjutan Iterasi 03-A
+
+Prioritas:
+Medium
+
+Latar Belakang:
+Saat verifikasi temuan (Iterasi 03-A), operator hanya dapat Approve/Reject. Namun data temuan dari mobile sering kali memiliki kategori yang kurang akurat (karena petugas lapangan memilih kategori secara cepat). Fitur ini memungkinkan operator memberikan atau mengubah kategori temuan saat proses verifikasi, sehingga data menjadi lebih kaya dan dapat dianalisis lebih lanjut.
+
+Nilai Bisnis:
+Meningkatkan kualitas dan kedalaman data temuan pengamatan untuk keperluan analisis dan pelaporan.
+
+Ketergantungan:
+- Iterasi 03-A harus selesai terlebih dahulu.
+- Memerlukan kolom `operator_category` di tabel `activity_events` (bisa ditambahkan manual bersamaan dengan kolom `status`).
+- Tumpang tindih dengan Iterasi 5 (Kategori Temuan) — evaluasi apakah perlu digabung.
+
+Catatan:
+Didefinisikan saat perencanaan Iterasi 03 pasca pre-implementation review.
+
+---
+
 ## BL-003 — Authentication & Authorization
 
 Status:

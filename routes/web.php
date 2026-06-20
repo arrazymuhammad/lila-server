@@ -14,8 +14,19 @@ Route::get('/', function () {
 Route::get('dashboard', [DashboardController::class, 'index']);
 Route::get('activities', [ActivityController::class, 'index']);
 Route::get('activities/{session}', [ActivityController::class, 'show']);
+
 Route::get('verifications', [VerificationController::class, 'index']);
 Route::patch('verifications/{session}/verify', [VerificationController::class, 'verify'])->name('verifications.verify');
+
+Route::prefix('verifications/findings')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Verification\FindingController::class, 'index']);
+});
+
+Route::prefix('verifications/sessions/{session}/findings')->group(function () {
+    Route::get('review', [\App\Http\Controllers\Verification\FindingController::class, 'review'])->name('verifications.findings.review');
+    Route::patch('{event}/verify', [\App\Http\Controllers\Verification\FindingController::class, 'verify'])->name('verifications.findings.verify');
+});
+
 Route::get('findings', [FindingController::class, 'index']);
 Route::get('findings/{event}', [FindingController::class, 'show']);
 Route::get('map', [MapController::class, 'index']);

@@ -43,8 +43,12 @@
                         Semua Rute
                     </a>
                 </div>
-                <a href="{{ url('verifications') }}" class="block px-4 py-3 rounded {{ request()->is('verifications*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
-                    Verifikasi
+                <div class="mt-6 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Verifikasi Data</div>
+                <a href="{{ url('verifications') }}" class="block px-4 py-3 rounded {{ request()->is('verifications') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                    Antrian Perjalanan
+                </a>
+                <a href="{{ url('verifications/findings') }}" class="block px-4 py-3 rounded {{ request()->is('verifications/findings*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                    Antrian Temuan
                 </a>
             </nav>
         </aside>
