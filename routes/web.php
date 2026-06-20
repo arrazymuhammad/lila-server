@@ -13,6 +13,7 @@ Route::get('/', function () {
 Route::get('dashboard', [DashboardController::class, 'index']);
 Route::get('activities', [ActivityController::class, 'index']);
 Route::get('activities/{session}', [ActivityController::class, 'show']);
+Route::patch('activities/{session}/verify', [ActivityController::class, 'verify'])->name('activities.verify');
 Route::get('findings', [FindingController::class, 'index']);
 Route::get('findings/{event}', [FindingController::class, 'show']);
 Route::get('map', [MapController::class, 'index']);

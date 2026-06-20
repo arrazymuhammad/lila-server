@@ -43,8 +43,8 @@
                         Semua Rute
                     </a>
                 </div>
-                <a href="#" class="block px-4 py-3 rounded hover:bg-slate-800 opacity-50 cursor-not-allowed">
-                    Verifikasi (Soon)
+                <a href="{{ url('activities?status=submitted') }}" class="block px-4 py-3 rounded hover:bg-slate-800">
+                    Verifikasi
                 </a>
             </nav>
         </aside>

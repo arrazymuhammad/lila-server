@@ -76,4 +76,18 @@ class ActivityController extends Controller
 
         return view('activities.show', compact('session', 'summary'));
     }
+
+    public function verify(Request $request, TrackingSession $session)
+    {
+        $validated = $request->validate([
+            'action' => 'required|in:verify,reject',
+            'reason' => 'required_if:action,reject|string|nullable',
+        ]);
+
+        $session->update([
+            'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected'
+        ]);
+
+        return redirect()->back();
+    }
 }
