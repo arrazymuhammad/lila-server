@@ -22,14 +22,14 @@
                 <span>LILA</span>
             </div>
             <nav class="px-4 space-y-2">
-                <a href="#" class="block px-4 py-3 rounded hover:bg-slate-800">
+                <a href="{{ url('dashboard') }}" class="block px-4 py-3 rounded {{ request()->is('dashboard') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Dashboard
                 </a>
-                <a href="{{ url('activities') }}" class="block px-4 py-3 rounded hover:bg-slate-800">
+                <a href="{{ url('activities') }}" class="block px-4 py-3 rounded {{ request()->is('activities*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Aktivitas
                 </a>
-                <a href="#" class="block px-4 py-3 rounded hover:bg-slate-800">
-                    Verifikasi
+                <a href="#" class="block px-4 py-3 rounded hover:bg-slate-800 opacity-50 cursor-not-allowed">
+                    Verifikasi (Soon)
                 </a>
             </nav>
         </aside>

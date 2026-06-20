@@ -6,7 +6,6 @@ use App\Models\ActivityEvent;
 use App\Models\ActivityPhoto;
 use App\Models\TrackingSession;
 use App\Models\TrackPoint;
-use Faker\Core\Uuid;
 use Illuminate\Support\Str;
 use ZipArchive;
 
