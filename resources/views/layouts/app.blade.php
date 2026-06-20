@@ -25,9 +25,24 @@
                 <a href="{{ url('dashboard') }}" class="block px-4 py-3 rounded {{ request()->is('dashboard') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Dashboard
                 </a>
-                <a href="{{ url('activities') }}" class="block px-4 py-3 rounded {{ request()->is('activities*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
-                    Aktivitas
-                </a>
+                <div class="pt-2">
+                    <div class="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Perjalanan</div>
+                    <a href="{{ url('activities') }}" class="block px-4 py-3 rounded {{ request()->is('activities*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                        Daftar Perjalanan
+                    </a>
+                </div>
+                <div class="pt-2">
+                    <div class="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Temuan</div>
+                    <a href="{{ url('findings') }}" class="block px-4 py-3 rounded {{ request()->is('findings*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                        Daftar Temuan Pengamatan
+                    </a>
+                </div>
+                <div class="pt-2">
+                    <div class="px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Peta</div>
+                    <a href="{{ url('map') }}" class="block px-4 py-3 rounded {{ request()->is('map') || request()->is('maps') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                        Semua Rute
+                    </a>
+                </div>
                 <a href="#" class="block px-4 py-3 rounded hover:bg-slate-800 opacity-50 cursor-not-allowed">
                     Verifikasi (Soon)
                 </a>

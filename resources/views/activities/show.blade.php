@@ -23,12 +23,12 @@
             <div class="flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between">
                 <div class="min-w-0">
                     <div class="mb-2 flex flex-wrap items-center gap-2">
-                        <a href="{{ url('activities') }}" class="text-sm font-semibold text-blue-700 hover:text-blue-900">Aktivitas</a>
+                        <a href="{{ url('activities') }}" class="text-sm font-semibold text-blue-700 hover:text-blue-900">Daftar Perjalanan</a>
                         <span class="text-sm text-gray-300">/</span>
                         <x-status-badge :status="$session->status" />
                     </div>
                     <h1 class="truncate text-2xl font-bold text-gray-950 xl:text-3xl">
-                        {{ $session->title ?? 'Aktivitas Tanpa Nama' }}
+                        {{ $session->title ?? 'Perjalanan Tanpa Nama' }}
                     </h1>
                     <div class="mt-2 text-sm text-gray-500">
                         {{ optional($session->start_time)->format('d M Y, H:i') ?? '-' }}
@@ -48,7 +48,7 @@
                         <div class="mt-1 font-bold text-gray-950">{{ $formatDuration($session->duration_seconds) }}</div>
                     </div>
                     <div class="rounded-lg bg-gray-50 p-3 text-center">
-                        <div class="text-xs font-medium text-gray-500">Event</div>
+                        <div class="text-xs font-medium text-gray-500">Temuan</div>
                         <div class="mt-1 font-bold text-gray-950">{{ $summary['events'] }}</div>
                     </div>
                     <div class="rounded-lg bg-gray-50 p-3 text-center">
@@ -74,7 +74,7 @@
 
                 <button x-show="!sidebarVisible" @click="toggleSidebar()"
                     class="absolute right-4 top-4 z-[1000] h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white shadow-lg">
-                    Event
+                    Temuan
                 </button>
 
                 <div x-show="mapNotice"
@@ -87,7 +87,7 @@
                 :class="sidebarVisible ? 'w-[440px]' : 'w-0 border-0'" x-show="sidebarVisible" x-transition>
                 <div class="flex items-center justify-between border-b border-gray-100 p-4">
                     <div>
-                        <div class="text-xs font-semibold uppercase tracking-wide text-gray-500" x-text="sidebarMode === 'list' ? 'Daftar Event' : 'Detail Event'"></div>
+                        <div class="text-xs font-semibold uppercase tracking-wide text-gray-500" x-text="sidebarMode === 'list' ? 'Daftar Temuan Pengamatan' : 'Detail Temuan'"></div>
                         <h2 class="mt-1 text-lg font-bold text-gray-950" x-text="sidebarTitle()"></h2>
                     </div>
                     <button @click="toggleSidebar()" class="h-9 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
@@ -99,7 +99,7 @@
                     <div class="flex min-h-0 flex-1 flex-col">
                         <div class="grid grid-cols-3 gap-3 border-b border-gray-100 p-4">
                             <div class="rounded-lg bg-gray-50 p-3 text-center">
-                                <div class="text-xs text-gray-500">Event</div>
+                                <div class="text-xs text-gray-500">Temuan</div>
                                 <div class="font-bold text-gray-950" x-text="session.events.length"></div>
                             </div>
                             <div class="rounded-lg bg-gray-50 p-3 text-center">
@@ -115,7 +115,7 @@
                         <div class="min-h-0 flex-1 overflow-y-auto">
                             <template x-if="session.events.length === 0">
                                 <div class="p-6 text-center text-sm text-gray-500">
-                                    Belum ada event pada sesi ini.
+                                    Belum ada temuan pengamatan pada perjalanan ini.
                                 </div>
                             </template>
 
@@ -182,14 +182,14 @@
 
                             <template x-if="selectedEvent && !selectedEvent.photos?.length">
                                 <div class="rounded-lg bg-gray-50 p-6 text-center text-sm text-gray-500">
-                                    Event ini belum memiliki foto.
+                                    Temuan ini belum memiliki foto.
                                 </div>
                             </template>
                         </div>
 
                         <div class="space-y-5 p-4" x-show="selectedEvent">
                             <div>
-                                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Judul Event</div>
+                                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Judul Temuan</div>
                                 <div class="mt-1 text-xl font-bold text-gray-950" x-text="titleOrDefault(selectedEvent, selectedEventIndex)"></div>
                             </div>
 
@@ -209,6 +209,11 @@
                                 <p class="mt-2 whitespace-pre-line text-sm leading-6 text-gray-700"
                                     x-text="descriptionOrDefault(selectedEvent)"></p>
                             </div>
+
+                            <a :href="'/findings/' + selectedEvent.id"
+                                class="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                                Buka Detail Temuan
+                            </a>
                         </div>
                     </div>
                 </template>
@@ -260,7 +265,7 @@
                         return this.titleOrDefault(this.selectedEvent, this.selectedEventIndex);
                     }
 
-                    return `${this.session.events.length} event tercatat`;
+                    return `${this.session.events.length} temuan tercatat`;
                 },
 
                 renderTrack() {
@@ -346,7 +351,7 @@
                 },
 
                 titleOrDefault(event, index) {
-                    return event?.title?.trim() ? event.title : `Event ${index + 1}`;
+                    return event?.title?.trim() ? event.title : `Temuan ${index + 1}`;
                 },
 
                 descriptionOrDefault(event) {

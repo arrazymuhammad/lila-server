@@ -19,9 +19,9 @@
 @section('content')
     <div class="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-            <div class="text-sm font-semibold uppercase tracking-wide text-blue-700">Riwayat Lapangan</div>
-            <h1 class="mt-1 text-3xl font-bold text-gray-950">Aktivitas</h1>
-            <p class="mt-1 text-gray-500">Kelola, telusuri, dan buka detail sesi pemetaan lapangan.</p>
+            <div class="text-sm font-semibold uppercase tracking-wide text-blue-700">Perjalanan</div>
+            <h1 class="mt-1 text-3xl font-bold text-gray-950">Daftar Perjalanan</h1>
+            <p class="mt-1 text-gray-500">Kelola, telusuri, dan buka detail perjalanan lapangan.</p>
         </div>
         <a href="{{ url('dashboard') }}"
             class="inline-flex w-fit items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
@@ -31,7 +31,7 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Sesi</div>
+            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Perjalanan</div>
             <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_sessions']) }}</div>
         </div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -43,7 +43,7 @@
             <div class="mt-2 text-2xl font-bold text-gray-950">{{ $formatDuration($summary['total_duration']) }}</div>
         </div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Event</div>
+            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Temuan</div>
             <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_events']) }}</div>
         </div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -56,8 +56,8 @@
         class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
             <label class="block">
-                <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Cari Aktivitas</span>
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Nama aktivitas..."
+                <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Cari Perjalanan</span>
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Nama perjalanan..."
                     class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
             </label>
 
@@ -82,7 +82,7 @@
                     <option value="">Terbaru</option>
                     <option value="distance" @selected(request('sort') === 'distance')>Jarak terjauh</option>
                     <option value="duration" @selected(request('sort') === 'duration')>Durasi terlama</option>
-                    <option value="events" @selected(request('sort') === 'events')>Event terbanyak</option>
+                    <option value="events" @selected(request('sort') === 'events')>Temuan terbanyak</option>
                     <option value="photos" @selected(request('sort') === 'photos')>Foto terbanyak</option>
                 </select>
             </label>
@@ -111,7 +111,7 @@
                                 {{ optional($session->start_time)->format('d M Y, H:i') ?? 'Tanggal belum tersedia' }}
                             </div>
                             <h2 class="mt-2 truncate text-xl font-bold">
-                                {{ $session->title ?? 'Aktivitas Tanpa Nama' }}
+                            {{ $session->title ?? 'Perjalanan Tanpa Nama' }}
                             </h2>
                         </div>
                         <div class="shrink-0 rounded-lg bg-white/10 px-3 py-2 text-right">
@@ -133,7 +133,7 @@
                             <div class="mt-1 text-sm font-bold text-gray-900">{{ $formatDuration($session->duration_seconds) }}</div>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-3">
-                            <div class="text-xs text-gray-500">Event</div>
+                            <div class="text-xs text-gray-500">Temuan</div>
                             <div class="mt-1 text-sm font-bold text-gray-900">{{ $session->events_count }}</div>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-3">
@@ -152,12 +152,12 @@
                         @endphp
                         <div class="h-full rounded-full bg-blue-600" style="width: {{ max(6, $density) }}%"></div>
                     </div>
-                    <div class="mt-2 text-xs text-gray-500">Kepadatan data sesi berdasarkan event, foto, dan track point.</div>
+                    <div class="mt-2 text-xs text-gray-500">Kepadatan data perjalanan berdasarkan temuan, foto, dan track point.</div>
                 </div>
             </a>
         @empty
             <div class="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-                <div class="text-lg font-bold text-gray-950">Tidak ada aktivitas ditemukan</div>
+                <div class="text-lg font-bold text-gray-950">Tidak ada perjalanan ditemukan</div>
                 <p class="mt-1 text-sm text-gray-500">Coba ubah kata kunci, status, atau urutan pencarian.</p>
                 <a href="{{ url('activities') }}"
                     class="mt-4 inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">

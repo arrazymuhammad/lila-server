@@ -184,7 +184,7 @@
                 </div>
 
                 <h3 class="mt-6 text-xl font-semibold">
-                    Mulai Aktivitas
+                    Mulai Perjalanan
                 </h3>
 
                 <p class="mt-3 text-gray-500">
@@ -200,7 +200,7 @@
                 </div>
 
                 <h3 class="mt-6 text-xl font-semibold">
-                    Catat Event
+                    Catat Temuan
                 </h3>
 
                 <p class="mt-3 text-gray-500">
