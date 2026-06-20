@@ -16,6 +16,7 @@ class MapController extends Controller
         $year = $year >= 2000 && $year <= 2100 ? $year : now()->year;
 
         $sessions = TrackingSession::query()
+            ->where('status', 'verified')
             ->with([
                 'trackPoints' => fn ($query) => $query->orderBy('timestamp'),
                 'events',
@@ -56,6 +57,7 @@ class MapController extends Controller
         });
 
         $years = TrackingSession::query()
+            ->where('status', 'verified')
             ->whereNotNull('start_time')
             ->orderByDesc('start_time')
             ->get(['start_time'])

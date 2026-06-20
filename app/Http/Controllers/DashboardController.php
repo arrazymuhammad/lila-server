@@ -11,18 +11,18 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $totalSessions = TrackingSession::count();
-        $totalDistance = (float) TrackingSession::sum('distance');
-        $totalDuration = (int) TrackingSession::sum('duration_seconds');
-        $totalEvents = ActivityEvent::count();
-        $totalPhotos = ActivityPhoto::count();
+        $totalSessions = TrackingSession::where('status', 'verified')->count();
+        $totalDistance = (float) TrackingSession::where('status', 'verified')->sum('distance');
+        $totalDuration = (int) TrackingSession::where('status', 'verified')->sum('duration_seconds');
+        $totalEvents = ActivityEvent::whereHas('session', fn($q) => $q->where('status', 'verified'))->count();
+        $totalPhotos = ActivityPhoto::whereHas('session', fn($q) => $q->where('status', 'verified'))->count();
 
         $stats = [
             'total_sessions' => $totalSessions,
             'total_events' => $totalEvents,
             'total_photos' => $totalPhotos,
-            'selected_photos' => ActivityPhoto::where('selected', true)->count(),
-            'total_track_points' => TrackPoint::count(),
+            'selected_photos' => ActivityPhoto::whereHas('session', fn($q) => $q->where('status', 'verified'))->where('selected', true)->count(),
+            'total_track_points' => TrackPoint::whereHas('session', fn($q) => $q->where('status', 'verified'))->count(),
             'total_distance' => $totalDistance,
             'total_duration' => $totalDuration,
             'avg_distance' => $totalSessions > 0 ? $totalDistance / $totalSessions : 0,
@@ -31,12 +31,14 @@ class DashboardController extends Controller
             'photos_per_session' => $totalSessions > 0 ? $totalPhotos / $totalSessions : 0,
         ];
 
-        $latestActivities = TrackingSession::latest('start_time')
+        $latestActivities = TrackingSession::where('status', 'verified')
+            ->latest('start_time')
             ->withCount(['events', 'photos'])
             ->take(8)
             ->get();
 
         $statusSummary = TrackingSession::query()
+            ->where('status', 'verified')
             ->select('status')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('status')
@@ -55,6 +57,7 @@ class DashboardController extends Controller
         });
 
         $recentSessions = TrackingSession::query()
+            ->where('status', 'verified')
             ->whereNotNull('start_time')
             ->where('start_time', '>=', now()->subDays(6)->startOfDay())
             ->get(['start_time', 'distance']);
@@ -73,18 +76,21 @@ class DashboardController extends Controller
         $maxTrendDistance = max(1, (float) $activityTrend->max('distance'));
 
         $latestEvents = ActivityEvent::query()
+            ->whereHas('session', fn($q) => $q->where('status', 'verified'))
             ->with('session:id,title')
             ->latest('timestamp')
             ->take(5)
             ->get();
 
         $latestPhotos = ActivityPhoto::query()
+            ->whereHas('session', fn($q) => $q->where('status', 'verified'))
             ->with('session:id,title')
             ->latest('timestamp')
             ->take(6)
             ->get();
 
         $highlightSession = TrackingSession::query()
+            ->where('status', 'verified')
             ->withCount(['events', 'photos'])
             ->orderByDesc('distance')
             ->first();

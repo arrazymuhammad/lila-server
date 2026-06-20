@@ -11,6 +11,7 @@ class ActivityController extends Controller
     public function index(Request $request)
     {
         $query = TrackingSession::query()
+            ->where('status', 'verified')
             ->withCount([
                 'events',
                 'photos',
@@ -19,12 +20,6 @@ class ActivityController extends Controller
 
         if ($request->filled('q')) {
             $query->where('title', 'like', '%' . (string) $request->string('q') . '%');
-        }
-
-        if ($request->filled('status')) {
-            $request->input('status') === '__unknown'
-                ? $query->whereNull('status')
-                : $query->where('status', (string) $request->string('status'));
         }
 
         match ($request->input('sort')) {
@@ -39,22 +34,16 @@ class ActivityController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $baseQuery = TrackingSession::where('status', 'verified');
         $summary = [
-            'total_sessions' => TrackingSession::count(),
-            'total_distance' => (float) TrackingSession::sum('distance'),
-            'total_duration' => (int) TrackingSession::sum('duration_seconds'),
-            'total_events' => ActivityEvent::count(),
-            'total_photos' => ActivityPhoto::count(),
+            'total_sessions' => (clone $baseQuery)->count(),
+            'total_distance' => (float) (clone $baseQuery)->sum('distance'),
+            'total_duration' => (int) (clone $baseQuery)->sum('duration_seconds'),
+            'total_events' => ActivityEvent::whereHas('session', fn($q) => $q->where('status', 'verified'))->count(),
+            'total_photos' => ActivityPhoto::whereHas('session', fn($q) => $q->where('status', 'verified'))->count(),
         ];
 
-        $statuses = TrackingSession::query()
-            ->select('status')
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('status')
-            ->orderBy('status')
-            ->get();
-
-        return view('activities.index', compact('sessions', 'summary', 'statuses'));
+        return view('activities.index', compact('sessions', 'summary'));
     }
 
     public function show(TrackingSession $session)
@@ -75,19 +64,5 @@ class ActivityController extends Controller
         ];
 
         return view('activities.show', compact('session', 'summary'));
-    }
-
-    public function verify(Request $request, TrackingSession $session)
-    {
-        $validated = $request->validate([
-            'action' => 'required|in:verify,reject',
-            'reason' => 'required_if:action,reject|string|nullable',
-        ]);
-
-        $session->update([
-            'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected'
-        ]);
-
-        return redirect()->back();
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FindingController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,7 +14,8 @@ Route::get('/', function () {
 Route::get('dashboard', [DashboardController::class, 'index']);
 Route::get('activities', [ActivityController::class, 'index']);
 Route::get('activities/{session}', [ActivityController::class, 'show']);
-Route::patch('activities/{session}/verify', [ActivityController::class, 'verify'])->name('activities.verify');
+Route::get('verifications', [VerificationController::class, 'index']);
+Route::patch('verifications/{session}/verify', [VerificationController::class, 'verify'])->name('verifications.verify');
 Route::get('findings', [FindingController::class, 'index']);
 Route::get('findings/{event}', [FindingController::class, 'show']);
 Route::get('map', [MapController::class, 'index']);

@@ -43,7 +43,7 @@
                         Semua Rute
                     </a>
                 </div>
-                <a href="{{ url('activities?status=submitted') }}" class="block px-4 py-3 rounded hover:bg-slate-800">
+                <a href="{{ url('verifications') }}" class="block px-4 py-3 rounded {{ request()->is('verifications*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Verifikasi
                 </a>
             </nav>

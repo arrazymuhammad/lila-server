@@ -8,12 +8,6 @@
 
         return "{$hours}j {$minutes}m";
     };
-
-    $statusLabels = [
-        'submitted' => 'Submitted',
-        'verified' => 'Verified',
-        'rejected' => 'Rejected',
-    ];
 @endphp
 
 @section('content')
@@ -54,25 +48,11 @@
 
     <form method="GET" action="{{ url('activities') }}"
         class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_180px_180px_auto]">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_180px_auto]">
             <label class="block">
                 <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Cari Perjalanan</span>
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Nama perjalanan..."
                     class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-            </label>
-
-            <label class="block">
-                <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Status</span>
-                <select name="status"
-                    class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                    <option value="">Semua status</option>
-                    @foreach ($statuses as $status)
-                        @php $statusValue = $status->status ?? 'unknown'; @endphp
-                        <option value="{{ $status->status ?? '__unknown' }}" @selected(request('status') === ($status->status ?? '__unknown'))>
-                            {{ $statusLabels[$statusValue] ?? ucfirst($statusValue) }} ({{ $status->total }})
-                        </option>
-                    @endforeach
-                </select>
             </label>
 
             <label class="block">

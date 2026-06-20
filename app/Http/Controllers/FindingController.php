@@ -11,6 +11,7 @@ class FindingController extends Controller
     public function index(Request $request)
     {
         $query = ActivityEvent::query()
+            ->whereHas('session', fn($q) => $q->where('status', 'verified'))
             ->with(['session:id,title,start_time', 'photos'])
             ->withCount('photos');
 
@@ -38,15 +39,18 @@ class FindingController extends Controller
             ->withQueryString();
 
         $sessions = TrackingSession::query()
+            ->where('status', 'verified')
             ->whereHas('events')
             ->orderByDesc('start_time')
             ->get(['id', 'title', 'start_time']);
 
+        $baseEventQuery = ActivityEvent::whereHas('session', fn($q) => $q->where('status', 'verified'));
+
         $summary = [
-            'total_findings' => ActivityEvent::count(),
-            'with_photos' => ActivityEvent::has('photos')->count(),
-            'with_coordinates' => ActivityEvent::whereNotNull('latitude')->whereNotNull('longitude')->count(),
-            'journeys_with_findings' => TrackingSession::whereHas('events')->count(),
+            'total_findings' => (clone $baseEventQuery)->count(),
+            'with_photos' => (clone $baseEventQuery)->has('photos')->count(),
+            'with_coordinates' => (clone $baseEventQuery)->whereNotNull('latitude')->whereNotNull('longitude')->count(),
+            'journeys_with_findings' => TrackingSession::where('status', 'verified')->whereHas('events')->count(),
         ];
 
         return view('findings.index', compact('findings', 'sessions', 'summary'));

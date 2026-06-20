@@ -63,40 +63,6 @@
             </div>
         </header>
 
-        @if ($session->status === 'submitted')
-            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm" x-data="{ showRejectForm: false }">
-                <div x-show="!showRejectForm" class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <h3 class="font-bold text-amber-900">Verifikasi Perjalanan</h3>
-                        <p class="text-sm text-amber-800">Perjalanan ini belum diverifikasi. Silakan periksa data lapangan sebelum menyetujui.</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button @click="showRejectForm = true" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-rose-600 border border-rose-200 hover:bg-rose-50 shadow-sm">Tolak</button>
-                        <form action="{{ route('activities.verify', $session) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="action" value="verify">
-                            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm" onclick="return confirm('Apakah Anda yakin ingin memverifikasi perjalanan ini?')">Verifikasi</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div x-show="showRejectForm" style="display: none;">
-                    <h3 class="font-bold text-rose-900 mb-2">Tolak Perjalanan</h3>
-                    <form action="{{ route('activities.verify', $session) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="action" value="reject">
-                        <textarea name="reason" required rows="2" class="w-full rounded-lg border border-gray-300 shadow-sm focus:border-rose-500 focus:ring-rose-500 text-sm p-3 mb-3 bg-white" placeholder="Masukkan alasan penolakan..."></textarea>
-                        <div class="flex justify-end gap-2">
-                            <button type="button" @click="showRejectForm = false" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm">Batal</button>
-                            <button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 shadow-sm" onclick="return confirm('Apakah Anda yakin ingin menolak perjalanan ini?')">Tolak Perjalanan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        @endif
-
         <main class="flex min-h-0 flex-1 gap-3">
             <section class="relative min-w-0 flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
                 <div id="map" class="h-full w-full"></div>
