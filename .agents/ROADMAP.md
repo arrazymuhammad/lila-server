@@ -1,4 +1,3 @@
-
 # ROADMAP.md
 
 ## Visi Produk
@@ -46,6 +45,7 @@ Proses verifikasi dua tingkat (perjalanan + temuan) sudah tersedia dan aktif. Se
 2. Memisahkan data mentah dan data terverifikasi.
 3. Menyediakan proses verifikasi yang sederhana.
 4. Menjadikan data terverifikasi sebagai sumber utama dashboard dan peta.
+5. Membangun pondasi keamanan dengan memproteksi halaman dashboard dan memfasilitasi autentikasi API mobile.
 
 ---
 
@@ -67,15 +67,11 @@ Status: Completed With Notes
 
 Verifikasi Temuan Pengamatan (Inti)
 
-Cakupan: Antrian verifikasi temuan, detail verifikasi individual (foto, peta, kategori), SyncController update, Visibility Rule temuan, toggle peta.
-
 Status: Completed With Notes
 
 ### Iteration 3-B ✅
 
 Pengayaan Kategori Temuan oleh Operator
-
-Cakupan: Operator dapat mengubah atau memberikan kategori pada temuan saat atau setelah verifikasi. Data `operator_category` tersimpan terpisah dari kategori asli mobile dengan fitur auto-suggest.
 
 Status: Completed With Notes
 
@@ -83,17 +79,11 @@ Status: Completed With Notes
 
 Reorientasi UI — Observation-Centric
 
-Cakupan: Mengubah prioritas visual Dashboard dan Daftar Perjalanan agar selaras dengan visi Observation-Centric. Termasuk: reorder summary cards, grafik tren berbasis temuan (bukan jarak), formula progress bar berbobot temuan, toggle filter perjalanan dengan temuan, dan optimalisasi sorting.
-
-Dasar: Issue ISS-001 s/d ISS-005 dari UX Review (issues/raw/001.md)
-
 Status: Completed ✅
 
 ### Iteration 5 ✅
 
 Heatmap Perjalanan
-
-Cakupan: Visualisasi heatmap densitas perjalanan di halaman `/map`. Toggle UI Heatmap dengan persistensi localStorage. Integrasi `leaflet-heat.js` via CDN. Satu file diubah (`resources/views/maps/index.blade.php`).
 
 Status: Completed ✅
 
@@ -101,29 +91,43 @@ Status: Completed ✅
 
 Manajemen Kategori Master
 
-Cakupan: Buat tabel master kategori temuan, antarmuka CRUD untuk operator, dan hubungkan dengan field `operator_category` yang sudah ada.
-
-Catatan: Menggantikan "Kategori Temuan" lama — sebagian sudah diselesaikan di Iterasi 03-B.
-
 Status: Completed ✅
 
 ### Iteration 7 🔜
 
 Heatmap Temuan Berdasarkan Kategori
 
-Cakupan: Layer heatmap densitas titik temuan di halaman `/map`, dengan dropdown filter kategori berbasis tabel master `finding_categories`. Menggunakan `leaflet-heat.js` yang sudah terpasang. Tidak ada perubahan schema atau API.
-
 Status: Target (In Preparation)
 
-### Iteration 8 📋
+### Iteration 8 ✅
 
 Peta Interaktif: Rich Finding Popup
 
-Cakupan: Memperkaya popup marker temuan di `/map` menjadi mini preview yang menampilkan judul, foto (carousel), waktu, kategori, dan deskripsi singkat — menghindari kebutuhan untuk membuka halaman detail bagi setiap temuan.
+Status: Completed ✅
 
-### Iteration 9 📋
+### Iteration 9 🔜
+
+Autentikasi Admin & Proteksi Dashboard
+
+Cakupan: Mengamankan sistem dengan membuat fitur login web. Menambahkan middleware `auth` ke seluruh rute dashboard, peta, dan verifikasi. Halaman web ini bersifat tertutup (hanya untuk operator/admin) sehingga tidak menyediakan akses registrasi publik. Mengalihkan halaman login menjadi gerbang utama. Akun pertama akan dibuat melalui Seeder.
+
+### Iteration 10 📋
+
+Otentikasi API Mobile (Sanctum)
+
+Cakupan: Instalasi dan konfigurasi Laravel Sanctum untuk aplikasi mobile. Menyediakan endpoint API JSON murni untuk `/api/register` dan `/api/login` yang akan mengeluarkan token (bearer) khusus perangkat mobile.
+
+### Iteration 11 📋
+
+Relasi Data Pelapor pada Sinkronisasi
+
+Cakupan: Menambahkan kolom `user_id` pada tabel `tracking_sessions` dan entitas terkait. Mengubah endpoint `/api/sync` agar menggunakan middleware `auth:sanctum` dan mendata identitas pelapor berdasarkan token mobile saat proses sinkronisasi data berlangsung.
+
+### Iteration 12 📋
 
 Pelaporan dan Statistik Lanjutan
+
+Cakupan: Eksport data, rekapitulasi data bulanan/tahunan (PDF/Excel) untuk laporan manajerial dari data yang telah tervalidasi.
 
 ---
 
