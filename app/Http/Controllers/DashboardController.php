@@ -53,6 +53,7 @@ class DashboardController extends Controller
                 'label' => $date->format('d M'),
                 'sessions' => 0,
                 'distance' => 0,
+                'events_count' => 0,
             ];
         });
 
@@ -60,7 +61,8 @@ class DashboardController extends Controller
             ->where('status', 'verified')
             ->whereNotNull('start_time')
             ->where('start_time', '>=', now()->subDays(6)->startOfDay())
-            ->get(['start_time', 'distance']);
+            ->withCount(['events' => fn($q) => $q->where('status', 'verified')])
+            ->get(['id', 'start_time', 'distance']);
 
         $activityTrend = $lastSevenDays->map(function ($day) use ($recentSessions) {
             $sessions = $recentSessions->filter(function ($session) use ($day) {
@@ -69,11 +71,13 @@ class DashboardController extends Controller
 
             $day['sessions'] = $sessions->count();
             $day['distance'] = (float) $sessions->sum('distance');
+            $day['events_count'] = (int) $sessions->sum('events_count');
 
             return $day;
         });
 
         $maxTrendDistance = max(1, (float) $activityTrend->max('distance'));
+        $maxTrendEvents = max(1, (int) $activityTrend->max('events_count'));
 
         $latestEvents = ActivityEvent::query()
             ->where('status', 'verified')
@@ -94,8 +98,9 @@ class DashboardController extends Controller
 
         $highlightSession = TrackingSession::query()
             ->where('status', 'verified')
+            ->whereHas('events', fn($q) => $q->where('status', 'verified'))
             ->withCount(['events' => fn($q) => $q->where('status', 'verified'), 'photos' => fn($q) => $q->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified'))])
-            ->orderByDesc('distance')
+            ->orderByDesc('events_count')
             ->first();
 
         return view('dashboard', compact(
@@ -104,6 +109,7 @@ class DashboardController extends Controller
             'statusSummary',
             'activityTrend',
             'maxTrendDistance',
+            'maxTrendEvents',
             'latestEvents',
             'latestPhotos',
             'highlightSession',

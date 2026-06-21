@@ -36,28 +36,6 @@
         <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <div class="flex items-start justify-between">
                 <div>
-                    <div class="text-sm font-medium text-gray-500">Total Perjalanan</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_sessions']) }}</div>
-                </div>
-                <div class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">S</div>
-            </div>
-            <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['avg_distance'], 2) }} km rata-rata per perjalanan</div>
-        </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="flex items-start justify-between">
-                <div>
-                    <div class="text-sm font-medium text-gray-500">Total Jarak Tempuh</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_distance'], 2) }} km</div>
-                </div>
-                <div class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">KM</div>
-            </div>
-            <div class="mt-4 text-sm text-gray-500">{{ $formatDuration($stats['total_duration']) }} total durasi lapangan</div>
-        </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="flex items-start justify-between">
-                <div>
                     <div class="text-sm font-medium text-gray-500">Total Temuan Pengamatan</div>
                     <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_events']) }}</div>
                 </div>
@@ -76,6 +54,28 @@
             </div>
             <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['selected_photos']) }} foto terpilih</div>
         </div>
+
+        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-500">Total Perjalanan</div>
+                    <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_sessions']) }}</div>
+                </div>
+                <div class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">S</div>
+            </div>
+            <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['avg_distance'], 2) }} km rata-rata per perjalanan</div>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-500">Total Jarak Tempuh</div>
+                    <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_distance'], 2) }} km</div>
+                </div>
+                <div class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">KM</div>
+            </div>
+            <div class="mt-4 text-sm text-gray-500">{{ $formatDuration($stats['total_duration']) }} total durasi lapangan</div>
+        </div>
     </div>
 
     <div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -83,10 +83,10 @@
             <div class="mb-5 flex items-center justify-between">
                 <div>
                     <h2 class="text-lg font-bold text-gray-950">Tren 7 Hari</h2>
-                    <p class="text-sm text-gray-500">Jarak dan jumlah perjalanan berdasarkan tanggal mulai.</p>
+                    <p class="text-sm text-gray-500">Jumlah temuan dan perjalanan berdasarkan tanggal mulai.</p>
                 </div>
                 <div class="text-right text-sm text-gray-500">
-                    <div class="font-semibold text-gray-900">{{ number_format($activityTrend->sum('distance'), 2) }} km</div>
+                    <div class="font-semibold text-gray-900">{{ number_format($activityTrend->sum('events_count')) }} temuan</div>
                     <div>{{ $activityTrend->sum('sessions') }} perjalanan</div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
             <div class="flex h-52 items-end gap-3">
                 @foreach ($activityTrend as $day)
                     @php
-                        $height = $day['distance'] > 0 ? max(14, ($day['distance'] / $maxTrendDistance) * 100) : 4;
+                        $height = $day['events_count'] > 0 ? max(14, ($day['events_count'] / $maxTrendEvents) * 100) : 4;
                     @endphp
                     <div class="flex flex-1 flex-col items-center gap-2">
                         <div class="flex h-36 w-full items-end rounded bg-gray-50 px-1">
@@ -102,7 +102,7 @@
                         </div>
                         <div class="text-center">
                             <div class="text-xs font-semibold text-gray-700">{{ $day['label'] }}</div>
-                            <div class="text-[11px] text-gray-500">{{ number_format($day['distance'], 1) }} km</div>
+                            <div class="text-[11px] text-gray-500">{{ number_format($day['events_count']) }} temuan</div>
                         </div>
                     </div>
                 @endforeach
@@ -198,19 +198,19 @@
         </section>
 
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 class="text-lg font-bold text-gray-950">Perjalanan Terjauh</h2>
+            <h2 class="text-lg font-bold text-gray-950">Perjalanan Terkaya Temuan</h2>
             @if ($highlightSession)
                 <div class="mt-4 rounded-lg bg-slate-900 p-5 text-white">
                     <div class="text-sm text-slate-300">{{ optional($highlightSession->start_time)->format('d M Y') ?? '-' }}</div>
                     <div class="mt-2 text-xl font-bold">{{ $highlightSession->title ?? 'Perjalanan Tanpa Nama' }}</div>
                     <div class="mt-5 grid grid-cols-3 gap-3 text-center">
                         <div>
-                            <div class="text-xs text-slate-400">Jarak</div>
-                            <div class="font-semibold">{{ number_format($highlightSession->distance, 2) }}</div>
+                            <div class="text-xs text-slate-400">Temuan</div>
+                            <div class="font-semibold text-rose-400">{{ $highlightSession->events_count }}</div>
                         </div>
                         <div>
-                            <div class="text-xs text-slate-400">Temuan</div>
-                            <div class="font-semibold">{{ $highlightSession->events_count }}</div>
+                            <div class="text-xs text-slate-400">Jarak</div>
+                            <div class="font-semibold">{{ number_format($highlightSession->distance, 2) }}</div>
                         </div>
                         <div>
                             <div class="text-xs text-slate-400">Foto</div>

@@ -22,6 +22,10 @@ class ActivityController extends Controller
             $query->where('title', 'like', '%' . (string) $request->string('q') . '%');
         }
 
+        if ($request->boolean('has_findings')) {
+            $query->whereHas('events', fn($q) => $q->where('status', 'verified'));
+        }
+
         match ($request->input('sort')) {
             'distance' => $query->orderByDesc('distance'),
             'duration' => $query->orderByDesc('duration_seconds'),

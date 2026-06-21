@@ -8,6 +8,7 @@ QA Lead.
 
 1. iteration.md
 2. implementation_report.md
+3. walkthrough
 
 ## Tujuan
 

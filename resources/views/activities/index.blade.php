@@ -39,6 +39,14 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Temuan</div>
+            <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_events']) }}</div>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Foto</div>
+            <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_photos']) }}</div>
+        </div>
+        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Perjalanan</div>
             <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_sessions']) }}</div>
         </div>
@@ -50,14 +58,6 @@
             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Durasi</div>
             <div class="mt-2 text-2xl font-bold text-gray-950">{{ $formatDuration($summary['total_duration']) }}</div>
         </div>
-        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Temuan</div>
-            <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_events']) }}</div>
-        </div>
-        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Foto</div>
-            <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($summary['total_photos']) }}</div>
-        </div>
     </div>
 
     <form method="GET" action="{{ url('activities') }}"
@@ -67,6 +67,13 @@
                 <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Cari Perjalanan</span>
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Nama perjalanan..."
                     class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+            </label>
+
+            <label class="block flex items-end">
+                <div class="flex items-center h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" name="has_findings" value="1" @checked(request('has_findings')) class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-xs font-semibold text-gray-700 select-none">Hanya ada temuan</span>
+                </div>
             </label>
 
             <label class="block">
@@ -96,10 +103,10 @@
                 <select name="sort"
                     class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                     <option value="">Terbaru</option>
-                    <option value="distance" @selected(request('sort') === 'distance')>Jarak terjauh</option>
-                    <option value="duration" @selected(request('sort') === 'duration')>Durasi terlama</option>
                     <option value="events" @selected(request('sort') === 'events')>Temuan terbanyak</option>
                     <option value="photos" @selected(request('sort') === 'photos')>Foto terbanyak</option>
+                    <option value="distance" @selected(request('sort') === 'distance')>Jarak terjauh</option>
+                    <option value="duration" @selected(request('sort') === 'duration')>Durasi terlama</option>
                 </select>
             </label>
 
@@ -117,6 +124,10 @@
     </form>
 
     <!-- Grid View -->
+    @php
+        $maxDensity = $sessions->max(fn($s) => ($s->events_count * 10) + ($s->photos_count * 5) + $s->track_points_count);
+        $maxDensity = max(1, $maxDensity);
+    @endphp
     <div x-show="viewMode === 'grid'" class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         @forelse ($sessions as $session)
             <a href="{{ url('activities', $session) }}"
@@ -165,9 +176,10 @@
 
                     <div class="mt-5 h-2 overflow-hidden rounded-full bg-gray-100">
                         @php
-                            $density = min(100, ($session->events_count + $session->photos_count + $session->track_points_count / 10));
+                            $densityRaw = ($session->events_count * 10) + ($session->photos_count * 5) + $session->track_points_count;
+                            $densityPercentage = ($densityRaw / $maxDensity) * 100;
                         @endphp
-                        <div class="h-full rounded-full bg-blue-600" style="width: {{ max(6, $density) }}%"></div>
+                        <div class="h-full rounded-full bg-blue-600" style="width: {{ max(4, $densityPercentage) }}%"></div>
                     </div>
                     <div class="mt-2 text-xs text-gray-500">Kepadatan data perjalanan berdasarkan temuan, foto, dan track point.</div>
                 </div>
