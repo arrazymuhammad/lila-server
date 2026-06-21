@@ -79,7 +79,7 @@ Cakupan: Operator dapat mengubah atau memberikan kategori pada temuan saat atau 
 
 Status: Completed With Notes
 
-### Iteration 4 📋
+### Iteration 4 ✅
 
 Reorientasi UI — Observation-Centric
 
@@ -87,9 +87,13 @@ Cakupan: Mengubah prioritas visual Dashboard dan Daftar Perjalanan agar selaras 
 
 Dasar: Issue ISS-001 s/d ISS-005 dari UX Review (issues/raw/001.md)
 
-### Iteration 5 📋
+Status: Completed ✅
+
+### Iteration 5 🔜
 
 Heatmap Perjalanan
+
+Status: Target (In Preparation)
 
 ### Iteration 6 📋
 

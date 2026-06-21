@@ -3,6 +3,7 @@
 @section('head')
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 @endsection
 
 @section('body_class', 'h-screen overflow-hidden')
@@ -18,6 +19,17 @@
                 </div>
 
                 <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer" title="Tampilkan heatmap perjalanan">
+                        <div class="relative">
+                            <input type="checkbox" x-model="showHeatmap" @change="toggleHeatmap" class="sr-only">
+                            <div class="block w-10 h-6 rounded-full transition" :class="showHeatmap ? 'bg-rose-600' : 'bg-gray-300'"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showHeatmap ? 'transform translate-x-4' : ''"></div>
+                        </div>
+                        <div class="ml-3 text-sm font-medium text-gray-700">
+                            Heatmap
+                        </div>
+                    </label>
+
                     <label class="flex items-center cursor-pointer" title="Tampilkan temuan yang belum diverifikasi">
                         <div class="relative">
                             <input type="checkbox" x-model="showAllFindings" @change="toggleFindings" class="sr-only">
@@ -119,6 +131,7 @@
                 notice: '',
                 routes: @json($routes),
                 showAllFindings: localStorage.getItem('lila_show_all_findings') === 'true',
+                showHeatmap: localStorage.getItem('lila_show_heatmap') === 'true',
                 mapLayers: [],
 
                 initMap() {
@@ -134,6 +147,15 @@
 
                 toggleFindings() {
                     localStorage.setItem('lila_show_all_findings', this.showAllFindings);
+                    this.refreshMap();
+                },
+
+                toggleHeatmap() {
+                    localStorage.setItem('lila_show_heatmap', this.showHeatmap);
+                    this.refreshMap();
+                },
+
+                refreshMap() {
                     this.mapLayers.forEach(layer => this.map.removeLayer(layer));
                     this.mapLayers = [];
                     this.renderRoutes();
@@ -141,24 +163,30 @@
 
                 renderRoutes() {
                     let bounds = [];
+                    let heatPoints = [];
 
                     this.routes.forEach((route) => {
                         if (route.coordinates.length >= 2) {
-                            const polyline = L.polyline(route.coordinates, {
-                                color: route.color,
-                                weight: 5,
-                                opacity: 0.85
-                            }).addTo(this.map);
+                            if (this.showHeatmap) {
+                                route.coordinates.forEach(coord => heatPoints.push([...coord, 1]));
+                                route.coordinates.forEach(coordinate => bounds.push(coordinate));
+                            } else {
+                                const polyline = L.polyline(route.coordinates, {
+                                    color: route.color,
+                                    weight: 5,
+                                    opacity: 0.85
+                                }).addTo(this.map);
 
-                            polyline.bindPopup(`
-                                <strong>${route.title}</strong><br>
-                                ${route.start_time || '-'}<br>
-                                ${Number(route.distance).toFixed(2)} km<br>
-                                <a href="${route.url}">Detail Perjalanan</a>
-                            `);
+                                polyline.bindPopup(`
+                                    <strong>${route.title}</strong><br>
+                                    ${route.start_time || '-'}<br>
+                                    ${Number(route.distance).toFixed(2)} km<br>
+                                    <a href="${route.url}">Detail Perjalanan</a>
+                                `);
 
-                            this.mapLayers.push(polyline);
-                            route.coordinates.forEach((coordinate) => bounds.push(coordinate));
+                                this.mapLayers.push(polyline);
+                                route.coordinates.forEach((coordinate) => bounds.push(coordinate));
+                            }
                         }
 
                         route.findings.forEach((finding) => {
@@ -184,6 +212,15 @@
                             bounds.push([finding.latitude, finding.longitude]);
                         });
                     });
+
+                    if (this.showHeatmap && heatPoints.length > 0) {
+                        const heatLayer = L.heatLayer(heatPoints, {
+                            radius: 20,
+                            blur: 15,
+                            maxZoom: 15
+                        }).addTo(this.map);
+                        this.mapLayers.push(heatLayer);
+                    }
 
                     if (bounds.length) {
                         this.map.fitBounds(bounds, {
