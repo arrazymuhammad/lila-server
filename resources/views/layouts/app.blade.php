@@ -50,6 +50,10 @@
                 <a href="{{ url('verifications/findings') }}" class="block px-4 py-3 rounded {{ request()->is('verifications/findings*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Antrian Temuan
                 </a>
+                <div class="mt-6 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Master Data</div>
+                <a href="{{ url('categories') }}" class="block px-4 py-3 rounded {{ request()->is('categories*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                    Kategori Temuan
+                </a>
             </nav>
         </aside>
         <main class="flex-1">

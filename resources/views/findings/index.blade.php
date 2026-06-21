@@ -34,7 +34,7 @@
 
     <form method="GET" action="{{ url('findings') }}"
         class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div class="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_180px_260px_auto]">
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_180px_220px_220px_auto]">
             <label class="block">
                 <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Cari Temuan</span>
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Judul atau deskripsi..."
@@ -45,6 +45,19 @@
                 <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal</span>
                 <input type="date" name="date" value="{{ request('date') }}"
                     class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+            </label>
+
+            <label class="block">
+                <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Kategori</span>
+                <select name="category"
+                    class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                    <option value="">Semua kategori</option>
+                    @foreach ($categories as $cat)
+                        <option value="{{ $cat }}" @selected(request('category') == $cat)>
+                            {{ $cat }}
+                        </option>
+                    @endforeach
+                </select>
             </label>
 
             <label class="block">

@@ -91,7 +91,7 @@ Kategori:
 Feature Improvement
 
 Prioritas:
-Medium
+Medium-High
 
 Latar Belakang:
 Saat ini tidak ada cara untuk mengoreksi `operator_category` atau data lain pada temuan yang sudah berstatus `verified` tanpa harus melakukan reject terlebih dahulu. Jika operator keliru mengisi kategori, proses koreksinya sangat tidak efisien.
@@ -105,14 +105,14 @@ Prosedur Edit Mode yang Disarankan:
 - Status temuan tetap `verified` setelah edit, tidak perlu antrian ulang.
 
 Catatan:
-Ditemukan saat QA Iterasi 03-B.
+Ditemukan saat QA Iterasi 03-B. Urgensi meningkat pasca Iterasi 06 — dengan master kategori tersedia, operator kini lebih sering butuh koreksi kategori temuan lama. Kandidat Iterasi 08.
 
 ---
 
 ## BL-008 — Auto-suggest Kategori Alphabetic
 
 Status:
-Open
+Resolved
 
 Kategori:
 UX Improvement
@@ -127,7 +127,7 @@ Nilai Bisnis:
 Meningkatkan konsistensi dan kemudahan pemilihan kategori oleh operator.
 
 Catatan:
-Ditemukan saat QA Iterasi 03-B. Perbaikan minor, mudah diimplementasikan.
+Ditemukan saat QA Iterasi 03-B. Diselesaikan otomatis oleh Iterasi 06 — auto-suggest kini membaca dari `finding_categories` yang di-query dengan `orderBy('name')`.
 
 ---
 
@@ -218,6 +218,51 @@ Iterasi 03-B
 
 Catatan:
 Fitur input `operator_category` dengan auto-suggest berhasil diimplementasikan. Tabel master kategori menjadi item terpisah (BL-009).
+
+---
+
+## BL-008 — Auto-suggest Kategori Alphabetic
+
+Status:
+Resolved (otomatis oleh Iterasi 06)
+
+Catatan:
+Auto-suggest membaca dari `finding_categories` yang sudah alpha-sorted. Tidak diperlukan implementasi terpisah.
+
+---
+
+## BL-009 — Manajemen Kategori Master
+
+Status:
+Done
+
+Diselesaikan di:
+Iterasi 06
+
+Catatan:
+Tabel `finding_categories`, CRUD `/categories`, integrasi auto-suggest verifikasi, dan filter temuan berhasil diimplementasikan.
+
+---
+
+## BL-011 — Normalisasi Kategori Temuan Historis
+
+Status:
+Open
+
+Kategori:
+Data Maintenance
+
+Prioritas:
+Low
+
+Latar Belakang:
+Data `operator_category` yang diisi sebelum Iterasi 06 (saat masih free text) mungkin tidak cocok secara persis dengan nama kategori di tabel master baru. Sebuah proses one-time data cleanup atau alat admin sederhana mungkin berguna untuk menjamin konsistensi data historis dengan master.
+
+Nilai Bisnis:
+Meningkatkan kualitas data untuk analisis kategori jangka panjang (terutama heatmap temuan berdasarkan kategori).
+
+Catatan:
+Ditambahkan dari review pasca Iterasi 06. Bukan kebutuhan mendesak — heatmap dan filter sudah berfungsi dengan string comparison. Kandidat fitur admin jangka panjang.
 
 ---
 

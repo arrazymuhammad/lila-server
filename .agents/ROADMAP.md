@@ -97,13 +97,7 @@ Cakupan: Visualisasi heatmap densitas perjalanan di halaman `/map`. Toggle UI He
 
 Status: Completed ✅
 
-### Iteration 6 🔜
-
-Manajemen Kategori Master
-
-Status: Target (In Preparation)
-
-### Iteration 6 📋
+### Iteration 6 ✅
 
 Manajemen Kategori Master
 
@@ -111,9 +105,15 @@ Cakupan: Buat tabel master kategori temuan, antarmuka CRUD untuk operator, dan h
 
 Catatan: Menggantikan "Kategori Temuan" lama — sebagian sudah diselesaikan di Iterasi 03-B.
 
-### Iteration 7 📋
+Status: Completed ✅
 
-Heatmap Temuan
+### Iteration 7 🔜
+
+Heatmap Temuan Berdasarkan Kategori
+
+Cakupan: Layer heatmap densitas titik temuan di halaman `/map`, dengan dropdown filter kategori berbasis tabel master `finding_categories`. Menggunakan `leaflet-heat.js` yang sudah terpasang. Tidak ada perubahan schema atau API.
+
+Status: Target (In Preparation)
 
 ### Iteration 8 📋
 

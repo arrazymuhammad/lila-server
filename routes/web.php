@@ -31,3 +31,5 @@ Route::get('findings', [FindingController::class, 'index']);
 Route::get('findings/{event}', [FindingController::class, 'show']);
 Route::get('map', [MapController::class, 'index']);
 Route::get('maps', [MapController::class, 'index']);
+
+Route::resource('categories', \App\Http\Controllers\FindingCategoryController::class)->only(['index', 'store', 'destroy']);

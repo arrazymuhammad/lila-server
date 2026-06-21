@@ -56,16 +56,12 @@ class FindingController extends Controller
         }
 
         $event->load('photos');
-        
+
         $remainingCount = $session->events()->where('status', 'submitted')->count();
         $totalCount = $session->events()->count();
         $progress = $totalCount > 0 ? (($totalCount - $remainingCount) / $totalCount) * 100 : 0;
 
-        $suggestedCategories = ActivityEvent::whereNotNull('operator_category')
-            ->where('operator_category', '!=', '')
-            ->distinct()
-            ->orderBy('operator_category')
-            ->pluck('operator_category');
+        $suggestedCategories = \App\Models\FindingCategory::orderBy('name')->pluck('name');
 
         return view('verifications.findings.review', compact('session', 'event', 'remainingCount', 'totalCount', 'progress', 'suggestedCategories'));
     }

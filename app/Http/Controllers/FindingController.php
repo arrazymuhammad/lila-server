@@ -34,6 +34,10 @@ class FindingController extends Controller
             $query->where('session_id', (string) $request->string('session_id'));
         }
 
+        if ($request->filled('category')) {
+            $query->where('operator_category', (string) $request->string('category'));
+        }
+
         $findings = $query
             ->latest('timestamp')
             ->paginate(12)
@@ -54,7 +58,9 @@ class FindingController extends Controller
             'journeys_with_findings' => TrackingSession::where('status', 'verified')->whereHas('events')->count(),
         ];
 
-        return view('findings.index', compact('findings', 'sessions', 'summary'));
+        $categories = \App\Models\FindingCategory::orderBy('name')->pluck('name');
+
+        return view('findings.index', compact('findings', 'sessions', 'summary', 'categories'));
     }
 
     public function show(ActivityEvent $event)

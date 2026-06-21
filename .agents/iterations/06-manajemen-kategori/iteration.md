@@ -1,7 +1,7 @@
 # Iterasi 06 — Manajemen Kategori Master
 
-> Status: **Proposed — Menunggu Persetujuan Infrastructure**
-> Target Mulai: Pasca Persetujuan Schema Database
+> Status: **Approved — Siap Implementasi** ✅
+> Target Mulai: Setelah admin menyelesaikan `infrastructure_requirements.md`
 > Fitur: Manajemen Tabel Master Kategori Temuan
 
 ---
