@@ -72,11 +72,29 @@ class FindingController extends Controller
 
         $validated = $request->validate([
             'action' => 'required|in:verify,reject',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'rejected_photos' => 'nullable|array',
+            'rejected_photos.*' => 'string|exists:activity_photos,id'
         ]);
 
+        if ($validated['action'] === 'verify') {
+            $totalPhotos = $event->photos()->count();
+            $rejectedCount = count($validated['rejected_photos'] ?? []);
+            if ($totalPhotos > 0 && ($totalPhotos - $rejectedCount) <= 0) {
+                return back()->withErrors(['action' => 'Temuan tidak dapat diverifikasi jika seluruh bukti fotonya ditolak. Sisakan minimal 1 foto, atau Tolak temuan ini secara keseluruhan.']);
+            }
+        }
+
         $event->update([
-            'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected'
+            'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected',
+            'title' => $validated['title'] ?? $event->title,
+            'description' => $validated['description'] ?? $event->description,
         ]);
+
+        if (!empty($validated['rejected_photos'])) {
+            $event->photos()->whereIn('id', $validated['rejected_photos'])->update(['selected' => false]);
+        }
 
         return redirect()->route('verifications.findings.review', $session);
     }

@@ -13,8 +13,8 @@ class ActivityController extends Controller
         $query = TrackingSession::query()
             ->where('status', 'verified')
             ->withCount([
-                'events',
-                'photos',
+                'events' => fn($q) => $q->where('status', 'verified'),
+                'photos' => fn($q) => $q->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified')),
                 'trackPoints',
             ]);
 
@@ -30,28 +30,52 @@ class ActivityController extends Controller
             default => $query->latest('start_time'),
         };
 
+        $month = (int) $request->input('month', now()->month);
+        $year = (int) $request->input('year', now()->year);
+
+        $month = $month >= 1 && $month <= 12 ? $month : now()->month;
+        $year = $year >= 2000 && $year <= 2100 ? $year : now()->year;
+
+        $query->whereYear('start_time', $year)->whereMonth('start_time', $month);
+
         $sessions = $query
             ->paginate(12)
             ->withQueryString();
 
-        $baseQuery = TrackingSession::where('status', 'verified');
+        $baseQuery = TrackingSession::where('status', 'verified')
+            ->whereYear('start_time', $year)
+            ->whereMonth('start_time', $month);
+
         $summary = [
             'total_sessions' => (clone $baseQuery)->count(),
             'total_distance' => (float) (clone $baseQuery)->sum('distance'),
             'total_duration' => (int) (clone $baseQuery)->sum('duration_seconds'),
-            'total_events' => ActivityEvent::whereHas('session', fn($q) => $q->where('status', 'verified'))->count(),
-            'total_photos' => ActivityPhoto::whereHas('session', fn($q) => $q->where('status', 'verified'))->count(),
+            'total_events' => ActivityEvent::where('status', 'verified')->whereHas('session', fn($q) => $q->where('status', 'verified')->whereYear('start_time', $year)->whereMonth('start_time', $month))->count(),
+            'total_photos' => ActivityPhoto::where('selected', true)->whereHas('event', fn($q) => $q->where('status', 'verified'))->whereHas('session', fn($q) => $q->where('status', 'verified')->whereYear('start_time', $year)->whereMonth('start_time', $month))->count(),
         ];
 
-        return view('activities.index', compact('sessions', 'summary'));
+        $years = TrackingSession::query()
+            ->where('status', 'verified')
+            ->whereNotNull('start_time')
+            ->orderByDesc('start_time')
+            ->get(['start_time'])
+            ->map(fn ($session) => $session->start_time->year)
+            ->unique()
+            ->values();
+
+        if ($years->isEmpty()) {
+            $years = collect([now()->year]);
+        }
+
+        return view('activities.index', compact('sessions', 'summary', 'month', 'year', 'years'));
     }
 
     public function show(TrackingSession $session)
     {
         $session->load([
             'trackPoints' => fn ($query) => $query->orderBy('timestamp'),
-            'photos' => fn ($query) => $query->latest('timestamp'),
-            'events.photos' => fn ($query) => $query->latest('timestamp'),
+            'photos' => fn ($query) => $query->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified'))->latest('timestamp'),
+            'events' => fn ($query) => $query->where('status', 'verified')->with(['photos' => fn ($q) => $q->where('selected', true)->latest('timestamp')]),
         ]);
 
         $summary = [

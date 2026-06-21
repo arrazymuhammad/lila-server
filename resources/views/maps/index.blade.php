@@ -177,7 +177,7 @@
                             }).addTo(this.map).bindPopup(`
                                 <strong>${finding.title}</strong><br>
                                 <span class="text-xs text-gray-500 uppercase">${finding.status || 'unknown'}</span><br>
-                                <a href="${finding.url}">Detail Temuan</a>
+                                ${isSubmitted ? '<span class="text-xs font-semibold text-rose-500">[Belum Diverifikasi]</span>' : `<a href="${finding.url}">Detail Temuan</a>`}
                             `);
 
                             this.mapLayers.push(marker);

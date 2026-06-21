@@ -19,9 +19,9 @@ class MapController extends Controller
             ->where('status', 'verified')
             ->with([
                 'trackPoints' => fn ($query) => $query->orderBy('timestamp'),
-                'events',
+                'events' => fn ($query) => $query->where('status', '!=', 'rejected')->with(['photos' => fn($q) => $q->where('selected', true)]),
             ])
-            ->withCount(['events', 'photos', 'trackPoints'])
+            ->withCount(['events' => fn($q) => $q->where('status', '!=', 'rejected'), 'photos', 'trackPoints'])
             ->whereYear('start_time', $year)
             ->whereMonth('start_time', $month)
             ->orderByDesc('start_time')
