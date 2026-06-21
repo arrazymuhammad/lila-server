@@ -89,9 +89,17 @@ Dasar: Issue ISS-001 s/d ISS-005 dari UX Review (issues/raw/001.md)
 
 Status: Completed ✅
 
-### Iteration 5 🔜
+### Iteration 5 ✅
 
 Heatmap Perjalanan
+
+Cakupan: Visualisasi heatmap densitas perjalanan di halaman `/map`. Toggle UI Heatmap dengan persistensi localStorage. Integrasi `leaflet-heat.js` via CDN. Satu file diubah (`resources/views/maps/index.blade.php`).
+
+Status: Completed ✅
+
+### Iteration 6 🔜
+
+Manajemen Kategori Master
 
 Status: Target (In Preparation)
 
