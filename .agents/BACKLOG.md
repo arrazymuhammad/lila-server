@@ -80,6 +80,35 @@ Sudah masuk roadmap sebagai Iterasi 6.
 
 ---
 
+# HIGH PRIORITY
+
+## BL-012 — Peta Interaktif: Rich Finding Popup
+
+Status:
+Planned (Iteration 08)
+
+Kategori:
+Feature Improvement
+
+Prioritas:
+High
+
+Latar Belakang:
+Saat ini, marker temuan di `/map` hanya menampilkan status dan link ke halaman detail. Operator sering harus melakukan banyak klik (*open in new tab*) untuk sekadar melihat foto atau kategori temuan.
+
+Nilai Bisnis:
+Mempercepat proses investigasi dan overview lapangan oleh operator langsung dari peta utama.
+
+Prosedur Edit Mode yang Disarankan:
+- `MapController` mengekspos foto, timestamp, deskripsi, dan kategori.
+- Popup marker menampilkan UI card kecil.
+- Tersedia fitur carousel mini jika foto > 1.
+
+Catatan:
+Di-request oleh QA saat testing Iterasi 07. Langsung dipromosikan ke Iterasi 08.
+
+---
+
 # MEDIUM PRIORITY
 
 ## BL-007 — Edit Mode untuk Temuan Verified

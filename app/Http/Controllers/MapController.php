@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrackingSession;
+use App\Models\FindingCategory;
 use Illuminate\Http\Request;
 
 class MapController extends Controller
@@ -49,6 +50,7 @@ class MapController extends Controller
                         'id' => $event->id,
                         'title' => $event->title ?? 'Temuan Tanpa Judul',
                         'status' => $event->status,
+                        'operator_category' => $event->operator_category,
                         'latitude' => (float) $event->latitude,
                         'longitude' => (float) $event->longitude,
                         'url' => url('findings', $event),
@@ -77,7 +79,9 @@ class MapController extends Controller
             'total_track_points' => (int) $sessions->sum('track_points_count'),
         ];
 
-        return view('maps.index', compact('sessions', 'routes', 'month', 'year', 'years', 'summary'));
+        $categories = FindingCategory::orderBy('name')->get();
+
+        return view('maps.index', compact('sessions', 'routes', 'month', 'year', 'years', 'summary', 'categories'));
     }
 
     private function routeColor(int $index): string

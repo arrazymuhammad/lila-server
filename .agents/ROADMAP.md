@@ -117,6 +117,12 @@ Status: Target (In Preparation)
 
 ### Iteration 8 📋
 
+Peta Interaktif: Rich Finding Popup
+
+Cakupan: Memperkaya popup marker temuan di `/map` menjadi mini preview yang menampilkan judul, foto (carousel), waktu, kategori, dan deskripsi singkat — menghindari kebutuhan untuk membuka halaman detail bagi setiap temuan.
+
+### Iteration 9 📋
+
 Pelaporan dan Statistik Lanjutan
 
 ---

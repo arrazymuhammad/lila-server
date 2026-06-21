@@ -19,6 +19,17 @@
                 </div>
 
                 <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer" title="Tampilkan heatmap temuan">
+                        <div class="relative">
+                            <input type="checkbox" x-model="showFindingHeatmap" @change="toggleFindingHeatmap" class="sr-only">
+                            <div class="block w-10 h-6 rounded-full transition" :class="showFindingHeatmap ? 'bg-purple-600' : 'bg-gray-300'"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showFindingHeatmap ? 'transform translate-x-4' : ''"></div>
+                        </div>
+                        <div class="ml-3 text-sm font-medium text-gray-700">
+                            Heatmap Temuan
+                        </div>
+                    </label>
+
                     <label class="flex items-center cursor-pointer" title="Tampilkan heatmap perjalanan">
                         <div class="relative">
                             <input type="checkbox" x-model="showHeatmap" @change="toggleHeatmap" class="sr-only">
@@ -26,7 +37,7 @@
                             <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showHeatmap ? 'transform translate-x-4' : ''"></div>
                         </div>
                         <div class="ml-3 text-sm font-medium text-gray-700">
-                            Heatmap
+                            Heatmap Rute
                         </div>
                     </label>
 
@@ -42,6 +53,16 @@
                     </label>
 
                     <form method="GET" action="{{ url('map') }}" class="flex flex-wrap items-end gap-3">
+                    <label x-show="showFindingHeatmap" style="display: none;">
+                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Kategori Temuan</span>
+                        <select x-model="selectedCategory" @change="refreshMap"
+                            class="h-10 rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-purple-50">
+                            <option value="">Semua Kategori</option>
+                            @foreach ($categories as $cat)
+                                <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
                     <label>
                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Bulan</span>
                         <select name="month"
@@ -132,6 +153,8 @@
                 routes: @json($routes),
                 showAllFindings: localStorage.getItem('lila_show_all_findings') === 'true',
                 showHeatmap: localStorage.getItem('lila_show_heatmap') === 'true',
+                showFindingHeatmap: localStorage.getItem('lila_show_finding_heatmap') === 'true',
+                selectedCategory: '',
                 mapLayers: [],
 
                 initMap() {
@@ -151,7 +174,20 @@
                 },
 
                 toggleHeatmap() {
+                    if (this.showHeatmap) {
+                        this.showFindingHeatmap = false;
+                        localStorage.setItem('lila_show_finding_heatmap', false);
+                    }
                     localStorage.setItem('lila_show_heatmap', this.showHeatmap);
+                    this.refreshMap();
+                },
+
+                toggleFindingHeatmap() {
+                    if (this.showFindingHeatmap) {
+                        this.showHeatmap = false;
+                        localStorage.setItem('lila_show_heatmap', false);
+                    }
+                    localStorage.setItem('lila_show_finding_heatmap', this.showFindingHeatmap);
                     this.refreshMap();
                 },
 
@@ -164,13 +200,14 @@
                 renderRoutes() {
                     let bounds = [];
                     let heatPoints = [];
+                    let findingHeatPoints = [];
 
                     this.routes.forEach((route) => {
                         if (route.coordinates.length >= 2) {
                             if (this.showHeatmap) {
                                 route.coordinates.forEach(coord => heatPoints.push([...coord, 1]));
                                 route.coordinates.forEach(coordinate => bounds.push(coordinate));
-                            } else {
+                            } else if (!this.showFindingHeatmap) {
                                 const polyline = L.polyline(route.coordinates, {
                                     color: route.color,
                                     weight: 5,
@@ -193,6 +230,19 @@
                             if (!this.showAllFindings && finding.status !== 'verified') {
                                 return;
                             }
+
+                            let renderMarker = true;
+
+                            if (this.showFindingHeatmap) {
+                                if (this.selectedCategory === '' || finding.operator_category === this.selectedCategory) {
+                                    findingHeatPoints.push([finding.latitude, finding.longitude, 1]);
+                                    bounds.push([finding.latitude, finding.longitude]);
+                                } else {
+                                    renderMarker = false; // Sembunyikan marker jika tidak cocok dengan filter
+                                }
+                            }
+
+                            if (!renderMarker) return;
 
                             const isSubmitted = finding.status === 'submitted';
                             const markerColor = isSubmitted ? '#9ca3af' : route.color;
@@ -220,6 +270,17 @@
                             maxZoom: 15
                         }).addTo(this.map);
                         this.mapLayers.push(heatLayer);
+                    }
+
+                    if (this.showFindingHeatmap && findingHeatPoints.length > 0) {
+                        // Gunakan warna gradien berbeda untuk membedakan dari heatmap rute (opsional, leaflet-heat default = blue-red)
+                        const heatFindingLayer = L.heatLayer(findingHeatPoints, {
+                            radius: 25,
+                            blur: 20,
+                            maxZoom: 15,
+                            gradient: {0.4: 'purple', 0.6: 'fuchsia', 0.8: 'red', 1: 'yellow'}
+                        }).addTo(this.map);
+                        this.mapLayers.push(heatFindingLayer);
                     }
 
                     if (bounds.length) {
