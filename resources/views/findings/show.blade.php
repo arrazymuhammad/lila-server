@@ -27,10 +27,20 @@
     <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2">
             <h2 class="text-lg font-bold text-gray-950">Detail Temuan</h2>
-            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
                 <div class="rounded-lg bg-gray-50 p-4">
                     <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Perjalanan</div>
                     <div class="mt-2 font-bold text-gray-950">{{ $event->session?->title ?? 'Perjalanan Tanpa Nama' }}</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-4">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Kategori Baku</div>
+                    <div class="mt-2 font-bold text-indigo-700">
+                        @if($event->operator_category)
+                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">{{ $event->operator_category }}</span>
+                        @else
+                            <span class="text-gray-400 font-normal italic">Belum dikategorikan</span>
+                        @endif
+                    </div>
                 </div>
                 <div class="rounded-lg bg-gray-50 p-4">
                     <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Koordinat</div>

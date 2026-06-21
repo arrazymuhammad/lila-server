@@ -4,7 +4,7 @@ Bertindaklah sebagai Product Manager.
 
 Baca:
 
-* roadmap_review.md
+* Seluruh file dalam folder .agents/roadmap_review/ (baca file terbaru berdasarkan nomor inkremental tertinggi)
 * backlog_review.md
 * ROADMAP.md
 * BACKLOG.md

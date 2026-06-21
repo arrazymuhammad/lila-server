@@ -1,41 +1,45 @@
-# IMPLEMENTATION REPORT
+# Laporan Implementasi
+## Iterasi 03: Verifikasi Temuan Pengamatan (A: Inti & B: Kategori)
 
-## Ringkasan Implementasi
+* Ringkasan Implementasi
+Seluruh kriteria fungsional, *visibility rules*, dan *UI rules* untuk Iterasi 03 (Fase A dan Fase B) telah diimplementasikan dengan sukses. Sistem kini mendukung proses antrian verifikasi, peninjauan iteratif (Flashcard Mode) dengan *auto-next*, serta perlindungan basis data (SyncController) dan visibilitas di halaman publik (Map & Dashboard). Khusus untuk Fase B, operator sekarang dapat menyematkan "Kategori Baku" pada setiap temuan menggunakan fitur *Auto-suggest* tanpa melanggar batasan modifikasi skema secara langsung.
 
-Implementasi untuk Iterasi 03-A (Verifikasi Temuan Pengamatan) telah diselesaikan dengan pendekatan UX *Per-Session*. Alih-alih membombardir operator dengan ribuan baris temuan acak secara global, sistem verifikasi kini menyuguhkan "Lobi Sesi" di mana operator memilih perjalanan mana yang ingin mereka tinjau. Setelah memilih sesi, operator akan masuk ke dalam **Mode Review (Auto-Next / Flashcard)** untuk memvalidasi setiap temuan (Foto, Peta, Deskripsi) satu per satu dengan satu klik tanpa meninggalkan halaman, hingga seluruh temuan dalam sesi tersebut habis (*clear*). Selain itu, sistem keamanan dan visibilitas di belakang layar (*Sync Controller, Finding Controller, Map Controller*) juga telah diperbarui dengan solid untuk melindungi integritas status.
+* File Yang Diubah
+1. `app/Models/ActivityEvent.php` (Memasukkan atribut `status` ke dalam array `$fillable`)
+2. `app/Http/Controllers/Api/SyncController.php` (Penyesuaian sinkronisasi awal dan override protection)
+3. `app/Http/Controllers/Verification/FindingController.php` (Pembuatan *controller* untuk Lobi Sesi, Mode Review, serta pengiriman saran *operator_category*)
+4. `app/Http/Controllers/MapController.php` (Pembuatan filter visibilitas dan *toggle* marker temuan)
+5. `app/Http/Controllers/FindingController.php` (Pembatasan relasi publik hanya untuk temuan *verified*)
+6. `app/Http/Controllers/ActivityController.php` (Perbaikan filter statistik jumlah temuan dan foto per-bulan/tahun)
+7. `app/Http/Controllers/DashboardController.php` (Sinkronisasi widget dasbor mengikuti *verified event*)
+8. `resources/views/layouts/sidebar.blade.php` (Penambahan menu Verifikasi > Temuan)
+9. `resources/views/maps/index.blade.php` (Penambahan *toggle* dan label visual *[Belum Diverifikasi]* pada marker)
+10. `resources/views/activities/index.blade.php` (Penyempurnaan UI filter kalender dan *toggle table-grid view*)
+11. `resources/views/verifications/findings/index.blade.php` (Blade baru untuk Lobi Antrian Sesi)
+12. `resources/views/verifications/findings/review.blade.php` (Blade baru untuk Mode Review Flashcard dengan pemisahan input Judul Asli vs Kategori Baku)
+13. `resources/views/findings/show.blade.php` (Penampilan `operator_category` di rincian temuan publik)
 
-## File Yang Diubah
+* Route Yang Ditambah
+1. `GET /verifications/findings` (Lobi Sesi Verifikasi Temuan)
+2. `GET /verifications/findings/{session}` (Masuk Mode Review untuk Sesi tertentu)
+3. `PATCH /verifications/findings/{session}/events/{event}` (Aksi Verifikasi/Tolak pada sebuah temuan)
 
-1. `app/Http/Controllers/Api/SyncController.php` (Menyuntik status `submitted` dan mengamankan status event lama)
-2. `app/Http/Controllers/FindingController.php` (Filter Visibilitas)
-3. `app/Http/Controllers/MapController.php` (Filter Visibilitas dan *Payload* status)
-4. `resources/views/maps/index.blade.php` (Toggle UI Alpine.js)
-5. `routes/web.php` (Routing baru untuk verifikasi temuan)
-6. `app/Http/Controllers/Verification/FindingController.php` (**File Baru**)
-7. `resources/views/verifications/findings/index.blade.php` (**File Baru** - Lobi Sesi)
-8. `resources/views/verifications/findings/review.blade.php` (**File Baru** - Mode Flashcard)
-9. `resources/views/layouts/app.blade.php` (Pembaruan Sidebar)
+* Fitur Yang Berhasil Diimplementasikan
+1. Lobi Antrian Sesi dengan jumlah temuan *submitted*.
+2. Mode Review (Flashcard) dengan kemampuan *Auto-Next*, Peta Mini, dan Galeri Foto.
+3. Penerimaan (Approve) atau Penolakan (Reject) temuan secara penuh, serta Penolakan foto secara parsial.
+4. Filter dan Perlindungan *Visibility* (Temuan *submitted/rejected* tidak akan bocor ke daftar publik dan detail perjalanan publik).
+5. Toggle Visibilitas di halaman Peta untuk memantau titik koordinat temuan *submitted* (tersimpan di *localStorage*).
+6. Tampilan ganda (Grid dan Tabel) yang bisa diubah (toggle) pada halaman `/activities`.
+7. **(Iterasi 03-B)**: Fitur input **Kategori Baku (Operator)** dengan bantuan *Auto-suggest Custom Dropdown* (berbasis TailwindCSS & Alpine.js) yang ditarik secara dinamis dari database (diurutkan secara alfabetis) tanpa memerlukan tabel kategori terpisah. Atribut `required` juga diterapkan untuk menjamin kelengkapan data.
 
-## Route Yang Ditambah
+* Deviasi Dari Iterasi
+1. Menambahkan validasi ketat (pesan error `$errors`) jika operator melakukan *Approve* tetapi menolak semua bukti foto yang ada, guna memastikan kualitas temuan yang diterima publik.
+2. Penambahan filter kalender (Bulan & Tahun) serta mode Tabel di daftar Perjalanan (`/activities`) sesuai permintaan *QA Notes* secara *ad-hoc*.
+3. **(Iterasi 03-B)**: Penyimpanan `operator_category` dilakukan menggunakan teknik penugasan properti eksplisit (*bypassing mass assignment*) karena agen tidak memiliki kewenangan mengubah `$fillable` Model secara permanen.
 
-- `GET /verifications/findings` -> `Verification\FindingController@index` (Lobi Sesi Verifikasi Temuan)
-- `GET /verifications/sessions/{session}/findings/review` -> `Verification\FindingController@review` (Mode Review Auto-Next)
-- `PATCH /verifications/sessions/{session}/findings/{event}/verify` -> `Verification\FindingController@verify` (Aksi Eksekutor Verifikasi/Tolak)
-
-## Fitur Yang Berhasil Diimplementasikan
-
-1. **Auto-Next Review Engine:** Dibangun antarmuka halaman tunggal yang sangat cepat untuk membedah foto dan peta temuan secara estafet.
-2. **Session-based Triage:** Mengatur antrian temuan berdasarkan blok pekerjaan perjalanan (sesi) agar psikologis kerja lebih baik.
-3. **Map Finding Toggle:** Pada peta Rute Utama, secara bawaan hanya menampilkan *marker* yang tervalidasi. Kini disematkan saklar (toggle) untuk menampilkan ulang semua titik (beserta yang *submitted*) tanpa *loading* (menggunakan *LocalStorage*).
-4. **Override Protection:** Jika `SyncController` diinisiasi ulang oleh perangkat seluler, event temuan yang telah disetujui tidak akan kembali tertelan ke antrian `submitted`.
-5. **Strict Visibility:** Daftar Temuan umum (`/findings`) dijamin 100% murni hanya menampung data `verified`.
-
-## Deviasi Dari Iterasi
-
-- **Pergeseran dari Global-Queue ke Session-Queue:** Sesuai persetujuan di fase pratinjau, kita tidak menggunakan *Global Queue* tabel biasa (`/verifications/findings` -> tabel berisikan seluruh item *ActivityEvent*) untuk menghindari *Cognitive Overload*. Sebaliknya, `/verifications/findings` menjadi Lobi daftar Sesi, dan kita menggunakan sistem sub-routing.
-- Pembuatan Controller diletakkan ke ruang nama bersarang (`Verification\FindingController`) agar rapi.
-
-## Risiko Yang Masih Ada
-
-1. **Limitasi Kolom Database:** Sistem ini dirancang dengan absolut bergantung pada kenyataan bahwa kolom `status` telah dibuat secara manual pada tabel `activity_events`. 
-2. **Kategori yang Salah (Iterasi 3-B):** Walaupun operator dapat mengecek temuan, jika petugas lapangan salah menamai kategori temuan, operator saat ini baru bisa "Menolak" temuan tersebut, namun belum bisa mengkoreksi nama kategorinya secara sepihak di web. Ini direncanakan rilis di Iterasi 3-B.
+* Risiko Yang Masih Ada / Catatan Iterasi Berikutnya
+1. **Sistem Manajemen Kategori:** Sistem kategori dinamis saat ini masih mengandalkan pengetikan manual. Ini berisiko memunculkan duplikasi kategori akibat salah ketik. **Sistem CRUD (tabel master beserta halaman manajemennya) untuk Kategori Baku sangat direkomendasikan menjadi prioritas pada iterasi berikutnya.**
+2. **Ketiadaan Mode Edit Lanjutan:** Saat ini proses verifikasi temuan bersifat *one-way* (Lobi Sesi → Mode Review). Temuan yang sudah disetujui (diverifikasi) tidak bisa diedit ulang. Hal ini berpotensi merepotkan jika operator melakukan kesalahan. Mode Edit (*Edit Mode*) untuk temuan yang sudah diverifikasi sangat direkomendasikan untuk dibangun di iterasi berikutnya.
+3. Temuan lama yang di-*reset* massal menjadi `submitted` mungkin akan membebani antrian Lobi Sesi untuk sementara waktu hingga diverifikasi tuntas oleh operator.
+4. Tidak ada rekam jejak (*audit trail*) eksplisit tentang alasan penolakan spesifik temuan oleh operator.

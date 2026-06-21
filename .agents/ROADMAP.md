@@ -36,7 +36,7 @@ Status data yang tersedia:
 * `tracking_sessions`: submitted, verified, rejected
 * `activity_events`: submitted, verified, rejected (kolom ditambahkan manual — Iterasi 03)
 
-Proses verifikasi perjalanan sudah tersedia. Verifikasi temuan sedang dalam pengerjaan.
+Proses verifikasi dua tingkat (perjalanan + temuan) sudah tersedia dan aktif. Seluruh data yang tampil di publik sudah melewati proses verifikasi operator.
 
 ---
 
@@ -63,39 +63,47 @@ Visibility Rule & Sentralisasi Verifikasi
 
 Status: Completed With Notes
 
-### Iteration 3-A 🔄
+### Iteration 3-A ✅
 
 Verifikasi Temuan Pengamatan (Inti)
 
 Cakupan: Antrian verifikasi temuan, detail verifikasi individual (foto, peta, kategori), SyncController update, Visibility Rule temuan, toggle peta.
 
-Status: In Progress
+Status: Completed With Notes
 
-### Iteration 3-B 📋
+### Iteration 3-B ✅
 
 Pengayaan Kategori Temuan oleh Operator
 
-Cakupan: Operator dapat mengubah atau memberikan kategori pada temuan saat atau setelah verifikasi. Data kategori operator disimpan terpisah dari kategori asli mobile.
+Cakupan: Operator dapat mengubah atau memberikan kategori pada temuan saat atau setelah verifikasi. Data `operator_category` tersimpan terpisah dari kategori asli mobile dengan fitur auto-suggest.
 
-Catatan: Tumpang tindih dengan Iteration 5. Akan dievaluasi saat 3-A selesai apakah 3-B dan 5 perlu digabung.
-
-Status: Planned
+Status: Completed With Notes
 
 ### Iteration 4 📋
 
-Heatmap Perjalanan
+Reorientasi UI — Observation-Centric
+
+Cakupan: Mengubah prioritas visual Dashboard dan Daftar Perjalanan agar selaras dengan visi Observation-Centric. Termasuk: reorder summary cards, grafik tren berbasis temuan (bukan jarak), formula progress bar berbobot temuan, toggle filter perjalanan dengan temuan, dan optimalisasi sorting.
+
+Dasar: Issue ISS-001 s/d ISS-005 dari UX Review (issues/raw/001.md)
 
 ### Iteration 5 📋
 
-Kategori Temuan
-
-Catatan: Kemungkinan digabung atau disederhanakan setelah Iteration 3-B selesai.
+Heatmap Perjalanan
 
 ### Iteration 6 📋
 
-Heatmap Temuan
+Manajemen Kategori Master
+
+Cakupan: Buat tabel master kategori temuan, antarmuka CRUD untuk operator, dan hubungkan dengan field `operator_category` yang sudah ada.
+
+Catatan: Menggantikan "Kategori Temuan" lama — sebagian sudah diselesaikan di Iterasi 03-B.
 
 ### Iteration 7 📋
+
+Heatmap Temuan
+
+### Iteration 8 📋
 
 Pelaporan dan Statistik Lanjutan
 

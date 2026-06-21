@@ -61,7 +61,13 @@ class FindingController extends Controller
         $totalCount = $session->events()->count();
         $progress = $totalCount > 0 ? (($totalCount - $remainingCount) / $totalCount) * 100 : 0;
 
-        return view('verifications.findings.review', compact('session', 'event', 'remainingCount', 'totalCount', 'progress'));
+        $suggestedCategories = ActivityEvent::whereNotNull('operator_category')
+            ->where('operator_category', '!=', '')
+            ->distinct()
+            ->orderBy('operator_category')
+            ->pluck('operator_category');
+
+        return view('verifications.findings.review', compact('session', 'event', 'remainingCount', 'totalCount', 'progress', 'suggestedCategories'));
     }
 
     public function verify(Request $request, TrackingSession $session, ActivityEvent $event)
@@ -73,6 +79,7 @@ class FindingController extends Controller
         $validated = $request->validate([
             'action' => 'required|in:verify,reject',
             'title' => 'nullable|string|max:255',
+            'operator_category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'rejected_photos' => 'nullable|array',
             'rejected_photos.*' => 'string|exists:activity_photos,id'
@@ -91,6 +98,11 @@ class FindingController extends Controller
             'title' => $validated['title'] ?? $event->title,
             'description' => $validated['description'] ?? $event->description,
         ]);
+
+        if (array_key_exists('operator_category', $validated)) {
+            $event->operator_category = $validated['operator_category'];
+            $event->save();
+        }
 
         if (!empty($validated['rejected_photos'])) {
             $event->photos()->whereIn('id', $validated['rejected_photos'])->update(['selected' => false]);

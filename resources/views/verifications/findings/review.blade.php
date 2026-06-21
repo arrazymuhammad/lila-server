@@ -50,10 +50,40 @@
 
             <div class="grid grid-cols-1 gap-4 xl:grid-cols-3 mb-6">
                 <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2 flex flex-col">
-                    <div class="flex items-start justify-between border-b border-gray-100 pb-4 mb-4 gap-4">
-                        <div class="flex-1">
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Judul / Kategori Temuan</label>
-                            <input type="text" name="title" value="{{ $event->title }}" required class="w-full text-xl font-bold text-gray-950 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Judul dari Lapangan</label>
+                            <input type="text" name="title" value="{{ $event->title }}" required class="w-full font-bold text-gray-950 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 shadow-sm">
+                            <p class="mt-1 text-[10px] text-gray-400">Judul asli yang diinput oleh petugas lapangan.</p>
+                        </div>
+                        <div class="relative" x-data="{ 
+                            isOpen: false, 
+                            search: '{{ addslashes($event->operator_category ?? '') }}',
+                            options: @js($suggestedCategories),
+                            get filteredOptions() {
+                                if (this.search === '') {
+                                    return this.options;
+                                }
+                                return this.options.filter(i => i.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+                            selectOption(option) {
+                                this.search = option;
+                                this.isOpen = false;
+                            }
+                        }">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Kategori Baku (Operator)</label>
+                            <div class="relative">
+                                <input type="text" name="operator_category" required x-model="search" @focus="isOpen = true" @click.away="isOpen = false" placeholder="Ketik atau pilih kategori..." class="w-full font-bold text-gray-950 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 shadow-sm" autocomplete="off">
+                                
+                                <div x-show="isOpen && filteredOptions.length > 0" x-transition style="display: none;" class="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    <template x-for="option in filteredOptions" :key="option">
+                                        <div @click="selectOption(option)" class="relative cursor-pointer select-none py-2 px-3 text-gray-900 hover:bg-indigo-600 hover:text-white transition">
+                                            <span x-text="option" class="block truncate font-medium"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-[10px] text-gray-400">Wajib diisi. Pilih dari saran agar penamaan seragam untuk analisis.</p>
                         </div>
                     </div>
                     
@@ -134,7 +164,7 @@
                 </div>
                 
                 <div class="flex w-full md:w-auto items-center gap-3">
-                    <button type="submit" name="action" value="reject" onclick="return confirm('Tolak temuan ini secara keseluruhan?')" class="w-full md:w-32 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-100 transition focus:ring-2 focus:ring-rose-500 outline-none">
+                    <button type="submit" name="action" value="reject" formnovalidate onclick="return confirm('Tolak temuan ini secara keseluruhan?')" class="w-full md:w-32 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-100 transition focus:ring-2 focus:ring-rose-500 outline-none">
                         Tolak
                     </button>
 

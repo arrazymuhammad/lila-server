@@ -55,6 +55,31 @@ Mungkin membutuhkan koordinasi dengan aplikasi mobile.
 
 ---
 
+## BL-009 — Manajemen Kategori Master
+
+Status:
+Open
+
+Kategori:
+Feature — Lanjutan Iterasi 03-B
+
+Prioritas:
+High
+
+Latar Belakang:
+Iterasi 03-B mengimplementasikan input `operator_category` berbasis teks bebas dengan auto-suggest. Tanpa tabel master kategori, ada risiko duplikasi kategori akibat perbedaan ejaan. Data kategori tidak dapat dijadikan filter atau analisis yang andal.
+
+Nilai Bisnis:
+Data temuan yang terkategori dengan baik adalah fondasi dari analisis dan pelaporan LILA. Tanpa kategori yang bersih, heatmap temuan dan statistik kategori tidak dapat dibangun.
+
+Ketergantungan:
+Memerlukan keputusan schema database (tabel baru `finding_categories`).
+
+Catatan:
+Sudah masuk roadmap sebagai Iterasi 6.
+
+---
+
 # MEDIUM PRIORITY
 
 ## BL-006 — Iteration 3-B: Pengayaan Kategori Temuan oleh Operator
@@ -84,7 +109,54 @@ Didefinisikan saat perencanaan Iterasi 03 pasca pre-implementation review.
 
 ---
 
-## BL-003 — Authentication & Authorization
+## BL-007 — Edit Mode untuk Temuan Verified
+
+Status:
+Open
+
+Kategori:
+Feature Improvement
+
+Prioritas:
+Medium
+
+Latar Belakang:
+Saat ini tidak ada cara untuk mengoreksi `operator_category` atau data lain pada temuan yang sudah berstatus `verified` tanpa harus melakukan reject terlebih dahulu. Jika operator keliru mengisi kategori, proses koreksinya sangat tidak efisien.
+
+Nilai Bisnis:
+Meningkatkan efisiensi kerja operator dan integritas data kategori.
+
+Prosedur Edit Mode yang Disarankan:
+- Tambahkan tombol "Edit Kategori" di halaman `/findings/{event}` (khusus operator).
+- Edit hanya mengizinkan perubahan `operator_category` — data asli mobile tidak berubah.
+- Status temuan tetap `verified` setelah edit, tidak perlu antrian ulang.
+
+Catatan:
+Ditemukan saat QA Iterasi 03-B.
+
+---
+
+## BL-008 — Auto-suggest Kategori Alphabetic
+
+Status:
+Open
+
+Kategori:
+UX Improvement
+
+Prioritas:
+Low
+
+Latar Belakang:
+Daftar saran pada auto-suggest Kategori Baku saat ini muncul berdasarkan urutan database (waktu masuk), bukan urutan alphabetic. Ini membuat pencarian kategori kurang konsisten.
+
+Nilai Bisnis:
+Meningkatkan konsistensi dan kemudahan pemilihan kategori oleh operator.
+
+Catatan:
+Ditemukan saat QA Iterasi 03-B. Perbaikan minor, mudah diimplementasikan.
+
+---
 
 Status:
 Open
@@ -142,7 +214,16 @@ Pengguna mungkin membutuhkan ekspor data ke format CSV.
 
 # DONE
 
-(Pindahkan item ke sini setelah selesai diimplementasikan)
+## BL-006 — Iteration 3-B: Pengayaan Kategori Temuan oleh Operator
+
+Status:
+Done
+
+Diselesaikan di:
+Iterasi 03-B
+
+Catatan:
+Fitur input `operator_category` dengan auto-suggest berhasil diimplementasikan. Tabel master kategori menjadi item terpisah (BL-009).
 
 ---
 
