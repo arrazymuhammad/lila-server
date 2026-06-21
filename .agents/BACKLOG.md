@@ -160,25 +160,6 @@ Ditemukan saat QA Iterasi 03-B. Diselesaikan otomatis oleh Iterasi 06 — auto-s
 
 ---
 
-## BL-003 — Authentication & Access Control
-
-Status:
-Open
-
-Kategori:
-Infrastructure
-
-Prioritas:
-Medium
-
-Latar Belakang:
-Saat ini aplikasi web belum memiliki mekanisme login dan kontrol akses.
-
-Catatan:
-Belum menjadi kebutuhan utama selama aplikasi digunakan secara internal.
-
----
-
 ## BL-004 — Verification Audit Trail
 
 Status:
@@ -236,6 +217,19 @@ Memastikan informasi visual yang disajikan di Daftar Perjalanan benar-benar mere
 ---
 
 # DONE
+
+## BL-003 — Authentication & Access Control
+
+Status:
+Done
+
+Diselesaikan di:
+Iterasi 09
+
+Catatan:
+Aplikasi web kini diproteksi menggunakan sistem autentikasi. Halaman dashboard, peta, dan verifikasi tertutup bagi publik.
+
+---
 
 ## BL-006 — Iteration 3-B: Pengayaan Kategori Temuan oleh Operator
 

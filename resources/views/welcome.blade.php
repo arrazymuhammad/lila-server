@@ -30,8 +30,8 @@
                         Download APK
                     </a>
 
-                    <a href="/activities" class="px-6 py-3 border rounded-xl hover:bg-gray-50">
-                        Lihat Dashboard
+                    <a href="{{ url('dashboard') }}" class="px-6 py-3 border bg-white rounded-xl hover:bg-gray-50 font-medium transition-colors">
+                        @auth Buka Dashboard @else Login Operator @endauth
                     </a>
 
                 </div>

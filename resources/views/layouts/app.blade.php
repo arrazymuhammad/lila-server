@@ -15,7 +15,7 @@
 
 <body class="bg-gray-100 @yield('body_class')" >
     <div class="flex min-h-screen">
-        <aside class="w-64 bg-slate-900 text-white">
+        <aside class="w-64 bg-slate-900 text-white flex flex-col h-screen sticky top-0">
             <div class="p-6 text-2xl font-bold flex items-center gap-3">
                 <img src="{{ url('assets/img/logo_revert.png') }}" alt="LILA" class="w-8 h-8">
 
@@ -55,6 +55,26 @@
                     Kategori Temuan
                 </a>
             </nav>
+
+            <!-- User Info & Logout -->
+            <div class="mt-auto p-4 bg-slate-950 border-t border-slate-800">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-inner">
+                        {{ substr(Auth::user()->name ?? 'A', 0, 1) }}
+                    </div>
+                    <div class="overflow-hidden flex-1">
+                        <div class="text-sm font-semibold truncate text-slate-200">{{ Auth::user()->name ?? 'Admin' }}</div>
+                        <div class="text-xs text-slate-500 truncate">{{ Auth::user()->email ?? '' }}</div>
+                    </div>
+                </div>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/90 hover:text-white rounded-lg text-sm font-medium text-slate-300 transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
         </aside>
         <main class="flex-1">
             <header class="bg-white border-b px-6 py-4">

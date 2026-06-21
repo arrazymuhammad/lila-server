@@ -105,11 +105,13 @@ Peta Interaktif: Rich Finding Popup
 
 Status: Completed ✅
 
-### Iteration 9 🔜
+### Iteration 9 ✅
 
 Autentikasi Admin & Proteksi Dashboard
 
-Cakupan: Mengamankan sistem dengan membuat fitur login web. Menambahkan middleware `auth` ke seluruh rute dashboard, peta, dan verifikasi. Halaman web ini bersifat tertutup (hanya untuk operator/admin) sehingga tidak menyediakan akses registrasi publik. Mengalihkan halaman login menjadi gerbang utama. Akun pertama akan dibuat melalui Seeder.
+Status: Completed ✅
+
+Cakupan: Mengamankan sistem dengan membuat fitur login web. Menambahkan middleware `auth` ke seluruh rute dashboard, peta, dan verifikasi. Halaman web ini bersifat tertutup (hanya untuk operator/admin) sehingga tidak menyediakan akses registrasi publik. Mengalihkan halaman login menjadi gerbang utama. Akun pertama dibuat melalui eksekusi manual Seeder/Tinker.
 
 ### Iteration 10 📋
 
