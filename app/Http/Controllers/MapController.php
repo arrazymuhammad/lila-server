@@ -49,11 +49,14 @@ class MapController extends Controller
                     ->map(fn ($event) => [
                         'id' => $event->id,
                         'title' => $event->title ?? 'Temuan Tanpa Judul',
+                        'description' => $event->description,
+                        'timestamp' => optional($event->timestamp)->format('d M Y, H:i'),
                         'status' => $event->status,
                         'operator_category' => $event->operator_category,
                         'latitude' => (float) $event->latitude,
                         'longitude' => (float) $event->longitude,
                         'url' => url('findings', $event),
+                        'photos' => $event->photos->map(fn($photo) => $photo->thumbnail_path ? url($photo->thumbnail_path) : url($photo->file_path))->values(),
                     ])
                     ->values(),
             ];

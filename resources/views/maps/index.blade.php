@@ -4,6 +4,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <style>
+        .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 0.5rem; }
+        .leaflet-popup-content { margin: 0; width: 256px !important; }
+    </style>
 @endsection
 
 @section('body_class', 'h-screen overflow-hidden')
@@ -146,6 +150,29 @@
     </div>
 
     <script>
+        window.changePhoto = function(event, direction) {
+            const popup = event.target.closest('.leaflet-popup-content');
+            if (!popup) return;
+
+            const container = popup.querySelector('[data-photos]');
+            if (!container) return;
+
+            const photos = JSON.parse(container.dataset.photos);
+            let currentIndex = parseInt(container.dataset.index);
+
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = photos.length - 1;
+            if (currentIndex >= photos.length) currentIndex = 0;
+
+            container.dataset.index = currentIndex;
+
+            const img = container.querySelector('img');
+            const counter = container.querySelector('.photo-counter');
+
+            img.src = photos[currentIndex];
+            counter.textContent = `${currentIndex + 1}/${photos.length}`;
+        };
+
         function allRoutesMap() {
             return {
                 map: null,
@@ -215,11 +242,15 @@
                                 }).addTo(this.map);
 
                                 polyline.bindPopup(`
-                                    <strong>${route.title}</strong><br>
-                                    ${route.start_time || '-'}<br>
-                                    ${Number(route.distance).toFixed(2)} km<br>
-                                    <a href="${route.url}">Detail Perjalanan</a>
-                                `);
+                                    <div class="p-4 w-64">
+                                        <div class="font-bold text-gray-900 mb-1">${route.title}</div>
+                                        <div class="text-xs text-gray-500 mb-3">${route.start_time || '-'}</div>
+                                        <div class="flex gap-2 mb-3">
+                                            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">${Number(route.distance).toFixed(2)} km</span>
+                                        </div>
+                                        <a href="${route.url}" class="block w-full text-center bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium text-xs py-1.5 rounded transition">Detail Perjalanan</a>
+                                    </div>
+                                `, { minWidth: 256, maxWidth: 256 });
 
                                 this.mapLayers.push(polyline);
                                 route.coordinates.forEach((coordinate) => bounds.push(coordinate));
@@ -247,16 +278,47 @@
                             const isSubmitted = finding.status === 'submitted';
                             const markerColor = isSubmitted ? '#9ca3af' : route.color;
 
+                            const safePhotos = (finding.photos || []).map(p => p.replace(/"/g, '"'));
+                            const photosJson = JSON.stringify(safePhotos).replace(/"/g, '"');
+
+                            let popupContent = `<div class="w-full flex flex-col">`;
+
+                            if (finding.photos && finding.photos.length > 0) {
+                                popupContent += `
+                                <div class="relative w-full h-32 bg-gray-100" data-photos='${photosJson}' data-index="0">
+                                    <img src="${safePhotos[0]}" class="object-cover w-full h-full" alt="Foto Temuan" />
+                                    ${finding.photos.length > 1 ? `
+                                        <span class="photo-counter absolute top-2 right-2 bg-black bg-opacity-60 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-sm">1/${finding.photos.length}</span>
+                                        <button onclick="window.changePhoto(event, -1)" class="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm text-gray-800 transition">&lsaquo;</button>
+                                        <button onclick="window.changePhoto(event, 1)" class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full shadow-sm text-gray-800 transition">&rsaquo;</button>
+                                    ` : ''}
+                                </div>`;
+                            } else {
+                                popupContent += `
+                                <div class="w-full h-16 bg-gray-50 flex items-center justify-center text-gray-400 text-xs border-b border-gray-100">
+                                    Tidak ada foto
+                                </div>`;
+                            }
+
+                            popupContent += `
+                                <div class="p-3">
+                                    ${finding.operator_category ? `<div class="inline-block px-1.5 py-0.5 mb-2 bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-semibold rounded">${finding.operator_category}</div>` : ''}
+                                    <div class="font-bold text-gray-900 mb-1 leading-tight text-sm">${finding.title}</div>
+                                    <div class="text-[10px] text-gray-500 mb-2">${finding.timestamp || '-'}</div>
+                                    ${finding.description ? `<p class="text-xs text-gray-600 mb-3 line-clamp-2 leading-relaxed">${finding.description}</p>` : ''}
+                                    <div class="flex items-center justify-between pt-3 border-t border-gray-100 mt-auto">
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${isSubmitted ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}">${finding.status || 'unknown'}</span>
+                                        ${!isSubmitted ? `<a href="${finding.url}" class="text-xs text-blue-600 font-medium hover:text-blue-700">Detail &rarr;</a>` : ''}
+                                    </div>
+                                </div>
+                            </div>`;
+
                             const marker = L.circleMarker([finding.latitude, finding.longitude], {
                                 radius: 6,
                                 color: markerColor,
                                 fillColor: markerColor,
                                 fillOpacity: 0.9
-                            }).addTo(this.map).bindPopup(`
-                                <strong>${finding.title}</strong><br>
-                                <span class="text-xs text-gray-500 uppercase">${finding.status || 'unknown'}</span><br>
-                                ${isSubmitted ? '<span class="text-xs font-semibold text-rose-500">[Belum Diverifikasi]</span>' : `<a href="${finding.url}">Detail Temuan</a>`}
-                            `);
+                            }).addTo(this.map).bindPopup(popupContent, { minWidth: 256, maxWidth: 256 });
 
                             this.mapLayers.push(marker);
                             bounds.push([finding.latitude, finding.longitude]);
