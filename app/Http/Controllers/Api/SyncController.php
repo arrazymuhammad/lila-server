@@ -49,6 +49,18 @@ class SyncController extends Controller
             true
         );
 
+        $sessionId = $metadata['session']['id'] ?? null;
+
+        if ($sessionId) {
+            $existing = TrackingSession::find($sessionId);
+
+            if ($existing && $existing->status === 'verified') {
+                return response()->json([
+                    'message' => 'Sesi sudah terverifikasi. Tidak dapat melakukan sinkronisasi ulang.',
+                ], 409);
+            }
+        }
+
         $this->importSession(
             $metadata['session']
         );
@@ -97,7 +109,7 @@ class SyncController extends Controller
     {
         foreach ($events as $event) {
             $event['session_id'] = $sessionId;
-            
+
             $existing = ActivityEvent::find($event['id']);
             if (!$existing) {
                 $event['status'] = 'submitted';
