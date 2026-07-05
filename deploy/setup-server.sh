@@ -47,6 +47,12 @@ EOF
 
 systemctl restart php8.3-fpm
 
+# Security check (TASK-220)
+if [ -f "/var/www/html/composer.json" ]; then
+    echo "Running composer audit..."
+    composer audit -d /var/www/html --no-dev || echo "Warning: composer audit found issues or failed"
+fi
+
 # Supervisor for queue worker (TASK-334)
 cat > /etc/supervisor/conf.d/lila-worker.conf << 'EOF'
 [program:lila-worker]

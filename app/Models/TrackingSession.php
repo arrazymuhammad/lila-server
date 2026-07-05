@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 #[Table('tracking_sessions', keyType: 'string', incrementing: false, timestamps: false)]
-#[Fillable(['id', 'title', 'start_time', 'end_time', 'distance', 'duration_seconds', 'status', 'rejected_reason'])]
+#[Fillable(['id', 'user_id', 'title', 'start_time', 'end_time', 'distance', 'duration_seconds', 'status', 'rejected_reason'])]
 class TrackingSession extends Model
 {
     use HasUuids;
