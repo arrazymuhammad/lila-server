@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrackingSession;
+use App\Models\VerificationAuditTrail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VerificationController extends Controller
 {
@@ -34,6 +36,10 @@ class VerificationController extends Controller
         return view('verifications.index', compact('sessions', 'summary'));
     }
 
+    /**
+     * Verify or reject a session. Persists rejected_reason (TASK-132)
+     * and logs audit trail (TASK-133).
+     */
     public function verify(Request $request, TrackingSession $session)
     {
         $validated = $request->validate([
@@ -41,10 +47,35 @@ class VerificationController extends Controller
             'reason' => 'required_if:action,reject|string|nullable',
         ]);
 
-        $session->update([
-            'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected'
+        $newStatus = $validated['action'] === 'verify' ? 'verified' : 'rejected';
+        $oldStatus = $session->status;
+        $reason = $validated['reason'] ?? null;
+
+        $updateData = ['status' => $newStatus];
+        if ($newStatus === 'rejected') {
+            $updateData['rejected_reason'] = $this->sanitize($reason);
+        } else {
+            $updateData['rejected_reason'] = null; // clear on re-verify
+        }
+
+        $session->update($updateData);
+
+        // TASK-133: Audit trail
+        VerificationAuditTrail::create([
+            'session_id' => $session->id,
+            'action' => $validated['action'],
+            'verifier_name' => Auth::user()?->name ?? 'system',
+            'reason' => $this->sanitize($reason),
+            'changes' => ['status' => [$oldStatus, $newStatus]],
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', "Perjalanan berhasil di{$validated['action']}.");
+    }
+
+    /** TASK-120: Basic XSS sanitization for text inputs */
+    private function sanitize(?string $input): ?string
+    {
+        if ($input === null) return null;
+        return strip_tags($input);
     }
 }

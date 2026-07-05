@@ -2,8 +2,11 @@
 
 @section('head')
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <style>
         .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 0.5rem; }
         .leaflet-popup-content { margin: 0; width: 256px !important; }
@@ -85,6 +88,15 @@
                             @foreach ($years as $yearOption)
                                 <option value="{{ $yearOption }}" @selected($year === (int) $yearOption)>{{ $yearOption }}</option>
                             @endforeach
+                        </select>
+                    </label>
+                    <label>
+                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Layer</span>
+                        <select x-model="selectedLayer" @change="switchLayer"
+                            class="h-10 rounded-lg border border-gray-300 px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                            <option value="osm">OpenStreetMap</option>
+                            <option value="satellite">Satelit</option>
+                            <option value="topo">Topografi</option>
                         </select>
                     </label>
                     <button type="submit"
@@ -182,17 +194,26 @@
                 showHeatmap: localStorage.getItem('lila_show_heatmap') === 'true',
                 showFindingHeatmap: localStorage.getItem('lila_show_finding_heatmap') === 'true',
                 selectedCategory: '',
+                selectedLayer: localStorage.getItem('lila_map_layer') || 'osm',
+                tileLayer: null,
                 mapLayers: [],
+                markerCluster: null,
 
                 initMap() {
                     this.map = L.map('all-routes-map');
-
-                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '&copy; OpenStreetMap'
-                    }).addTo(this.map);
-
+                    this.switchLayer();
                     this.renderRoutes();
+                },
+
+                switchLayer() {
+                    if (this.tileLayer) this.map.removeLayer(this.tileLayer);
+                    localStorage.setItem('lila_map_layer', this.selectedLayer);
+                    const urls = {
+                        osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                        topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+                    };
+                    this.tileLayer = L.tileLayer(urls[this.selectedLayer] || urls.osm, { maxZoom: 19 }).addTo(this.map);
                 },
 
                 toggleFindings() {
@@ -221,6 +242,10 @@
                 refreshMap() {
                     this.mapLayers.forEach(layer => this.map.removeLayer(layer));
                     this.mapLayers = [];
+                    if (this.markerCluster) {
+                        this.map.removeLayer(this.markerCluster);
+                        this.markerCluster = null;
+                    }
                     this.renderRoutes();
                 },
 
@@ -228,6 +253,7 @@
                     let bounds = [];
                     let heatPoints = [];
                     let findingHeatPoints = [];
+                    this.markerCluster = L.markerClusterGroup({ maxClusterRadius: 40 });
 
                     this.routes.forEach((route) => {
                         if (route.coordinates.length >= 2) {
@@ -318,12 +344,16 @@
                                 color: markerColor,
                                 fillColor: markerColor,
                                 fillOpacity: 0.9
-                            }).addTo(this.map).bindPopup(popupContent, { minWidth: 256, maxWidth: 256 });
+                            }).bindPopup(popupContent, { minWidth: 256, maxWidth: 256 });
 
-                            this.mapLayers.push(marker);
+                            this.markerCluster.addLayer(marker);
                             bounds.push([finding.latitude, finding.longitude]);
                         });
                     });
+
+                    if (!this.showHeatmap && !this.showFindingHeatmap) {
+                        this.map.addLayer(this.markerCluster);
+                    }
 
                     if (this.showHeatmap && heatPoints.length > 0) {
                         const heatLayer = L.heatLayer(heatPoints, {
@@ -335,7 +365,6 @@
                     }
 
                     if (this.showFindingHeatmap && findingHeatPoints.length > 0) {
-                        // Gunakan warna gradien berbeda untuk membedakan dari heatmap rute (opsional, leaflet-heat default = blue-red)
                         const heatFindingLayer = L.heatLayer(findingHeatPoints, {
                             radius: 25,
                             blur: 20,

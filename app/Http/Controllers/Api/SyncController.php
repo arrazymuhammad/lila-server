@@ -7,14 +7,32 @@ use App\Models\ActivityPhoto;
 use App\Models\TrackingSession;
 use App\Models\TrackPoint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
 
 class SyncController extends Controller
 {
+    /**
+     * TASK-106: Standardized JSON error responses with code + timestamp.
+     * TASK-112: Detailed logging for every sync event.
+     */
+    private function error(string $message, int $status, string $code = 'SYNC_ERROR'): \Illuminate\Http\JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'code' => $code,
+            'message' => $message,
+            'timestamp' => now()->toIso8601String(),
+        ], $status);
+    }
+
     public function activity()
     {
+        $ip = request()->ip();
+        $userAgent = request()->userAgent();
+
         request()->validate([
             'file' => ['required', 'file', 'mimes:zip', 'max:100000'],
         ]);
@@ -29,9 +47,8 @@ class SyncController extends Controller
             $zip = new ZipArchive();
 
             if ($zip->open($zipFile->getRealPath()) !== true) {
-                return response()->json([
-                    'message' => 'ZIP tidak valid',
-                ], 400);
+                Log::warning('Sync: invalid ZIP', ['ip' => $ip]);
+                return $this->error('ZIP tidak valid', 400, 'INVALID_ZIP');
             }
 
             // Zip Slip protection: validate all entry paths before extraction
@@ -40,7 +57,8 @@ class SyncController extends Controller
                 $resolved = realpath($extractPath . '/' . $entryName);
                 if ($resolved === false || !str_starts_with($resolved, realpath($extractPath))) {
                     $zip->close();
-                    return response()->json(['message' => 'ZIP berisi path tidak valid'], 400);
+                    Log::warning('Sync: zip slip detected', ['entry' => $entryName, 'ip' => $ip]);
+                    return $this->error('ZIP berisi path tidak valid', 400, 'ZIP_SLIP_DETECTED');
                 }
             }
 
@@ -50,9 +68,8 @@ class SyncController extends Controller
             $metadataFile = $extractPath . '/metadata.json';
 
             if (!file_exists($metadataFile)) {
-                return response()->json([
-                    'message' => 'metadata.json tidak ditemukan',
-                ], 400);
+                Log::warning('Sync: metadata.json missing', ['ip' => $ip]);
+                return $this->error('metadata.json tidak ditemukan', 400, 'METADATA_MISSING');
             }
 
             $metadata = json_decode(
@@ -66,13 +83,12 @@ class SyncController extends Controller
                 $existing = TrackingSession::find($sessionId);
 
                 if ($existing && $existing->status === 'verified') {
-                    return response()->json([
-                        'message' => 'Sesi sudah terverifikasi. Tidak dapat melakukan sinkronisasi ulang.',
-                    ], 409);
+                    Log::info('Sync: rejected verified session re-upload', ['session_id' => $sessionId, 'ip' => $ip]);
+                    return $this->error('Sesi sudah terverifikasi. Tidak dapat melakukan sinkronisasi ulang.', 409, 'SESSION_ALREADY_VERIFIED');
                 }
             }
 
-            DB::transaction(function () use ($metadata, $extractPath) {
+            DB::transaction(function () use ($metadata, $extractPath, $sessionId) {
                 $this->importSession(
                     $metadata['session']
                 );
@@ -94,9 +110,21 @@ class SyncController extends Controller
                 );
             });
 
+            Log::info('Sync: success', ['session_id' => $sessionId, 'ip' => $ip, 'ua' => $userAgent]);
+
             return response()->json([
+                'success' => true,
+                'code' => 'SYNC_SUCCESS',
                 'message' => 'Sinkronisasi berhasil',
+                'timestamp' => now()->toIso8601String(),
             ]);
+        } catch (\Throwable $e) {
+            Log::error('Sync: exception', [
+                'session_id' => $sessionId ?? null,
+                'error' => $e->getMessage(),
+                'ip' => $ip,
+            ]);
+            return $this->error('Terjadi kesalahan server saat sinkronisasi', 500, 'SYNC_EXCEPTION');
         } finally {
             if (is_dir($extractPath)) {
                 Storage::disk('local')->deleteDirectory(
@@ -106,22 +134,43 @@ class SyncController extends Controller
         }
     }
 
+    /** TASK-120: strip_tags on text fields to prevent XSS stored */
+    private function sanitize(?string $value): ?string
+    {
+        return $value !== null ? strip_tags($value) : null;
+    }
+
     private function importSession(array $session): void
     {
         TrackingSession::updateOrCreate(
             ['id' => $session['id']],
             [
                 ...$session,
+                'title' => $this->sanitize($session['title'] ?? null),
                 'status' => 'submitted'
             ]
         );
     }
 
+    /**
+     * TASK-115: Deduplicate track points by (session_id, timestamp) before import.
+     */
     private function importTrackPoints(array $trackPoints, string $sessionId): void
     {
         TrackPoint::where('session_id', $sessionId)->delete();
-        foreach ($trackPoints as $trackPoint) {
-            $trackPoint['session_id'] = $sessionId;
+
+        $seen = [];
+        $deduped = [];
+
+        foreach ($trackPoints as $tp) {
+            $key = $sessionId . '|' . ($tp['timestamp'] ?? '');
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $tp['session_id'] = $sessionId;
+            $deduped[] = $tp;
+        }
+
+        foreach ($deduped as $trackPoint) {
             TrackPoint::create($trackPoint);
         }
     }
@@ -130,6 +179,10 @@ class SyncController extends Controller
     {
         foreach ($events as $event) {
             $event['session_id'] = $sessionId;
+            // TASK-120: Sanitize text fields against XSS
+            $event['title'] = $this->sanitize($event['title'] ?? null);
+            $event['description'] = $this->sanitize($event['description'] ?? null);
+            $event['operator_category'] = $this->sanitize($event['operator_category'] ?? null);
 
             $existing = ActivityEvent::find($event['id']);
             if (!$existing) {
