@@ -9,4 +9,6 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('sync', [SyncController::class, 'activity']);
     Route::post('sessions/status', [SessionStatusController::class, 'check']);
     Route::get('categories', [CategoryController::class, 'index']); // TASK-118
+    Route::get('analytics/trends', [\App\Http\Controllers\Api\AnalyticsController::class, 'trends']); // TASK-209
+    Route::get('sync/status/{id}', [\App\Http\Controllers\Api\SyncStatusDetailController::class, 'show']); // TASK-238
 });

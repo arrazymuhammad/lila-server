@@ -78,8 +78,15 @@
         </div>
     </form>
 
-    <form id="bulk-verify-form" action="{{ route('verifications.bulk-verify') }}" method="POST">
+    <form id="bulk-verify-form" action="{{ route('verifications.bulk-verify') }}" method="POST" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf
+        <!-- TASK-232: Loading spinner overlay -->
+        <div x-show="submitting" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-lg flex items-center gap-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span class="text-sm font-semibold text-gray-700">Memproses aksi massal...</span>
+            </div>
+        </div>
         <div class="mb-3 flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200" x-data="{ count: 0 }">
             <div class="text-sm font-semibold text-blue-900">
                 <span>Aksi Massal (<span id="selected-count">0</span> terpilih)</span>

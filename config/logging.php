@@ -73,6 +73,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'errors' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/error.log'),
+            'level' => 'error',
+            'replace_placeholders' => true,
+        ], // TASK-247
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

@@ -20,6 +20,8 @@ class ProcessSyncUpload implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 3; // TASK-236
+
     public function __construct(
         public string $sessionId,
         public string $zipPath,
@@ -27,6 +29,7 @@ class ProcessSyncUpload implements ShouldQueue
 
     public function handle(): void
     {
+        Log::info('SyncUpload: pipeline start', ['session_id' => $this->sessionId]); // TASK-237
         try {
             $zip = new ZipArchive();
             if ($zip->open($this->zipPath) !== true) {
@@ -48,6 +51,7 @@ class ProcessSyncUpload implements ShouldQueue
                 $zip->extractTo($extractPath, $name);
             }
             $zip->close();
+            Log::info('SyncUpload: unzip completed', ['session_id' => $this->sessionId]); // TASK-237
 
             $jsonPath = $extractPath . '/data.json';
             if (!file_exists($jsonPath)) {
@@ -86,6 +90,7 @@ class ProcessSyncUpload implements ShouldQueue
                 );
             }
 
+            Log::info('SyncUpload: session & track points imported', ['session_id' => $this->sessionId]); // TASK-237
             // upsert events + photos, dispatch thumbnail jobs
             foreach ($data['events'] ?? [] as $ev) {
                 ActivityEvent::updateOrCreate(
