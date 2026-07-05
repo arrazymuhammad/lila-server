@@ -77,6 +77,11 @@ class SyncController extends Controller
                 true
             );
 
+            // TASK-116: Validate metadata structure (minimal schema check)
+            if (!is_array($metadata) || empty($metadata['session']['id'])) {
+                return $this->error('metadata.json format tidak valid', 400, 'METADATA_INVALID');
+            }
+
             $sessionId = $metadata['session']['id'] ?? null;
 
             if ($sessionId) {

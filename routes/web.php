@@ -11,6 +11,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// TASK-169: Override health check with detailed database diagnosis
+Route::get('/up', \App\Http\Controllers\HealthController::class);
+
 Route::get('login', [\App\Http\Controllers\AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('login', [\App\Http\Controllers\AuthController::class, 'login'])->middleware('guest');
 Route::post('logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout')->middleware('auth');
