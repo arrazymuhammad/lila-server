@@ -6,6 +6,7 @@ use App\Models\ActivityEvent;
 use App\Models\ActivityPhoto;
 use App\Models\TrackingSession;
 use App\Models\TrackPoint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
@@ -15,7 +16,7 @@ class SyncController extends Controller
     public function activity()
     {
         request()->validate([
-            'file' => ['required', 'file', 'mimes:zip'],
+            'file' => ['required', 'file', 'mimes:zip', 'max:100000'],
         ]);
 
         $zipFile = request()->file('file');
@@ -27,14 +28,22 @@ class SyncController extends Controller
         try {
             $zip = new ZipArchive();
 
-            if (
-                $zip->open($zipFile->getRealPath())
-                !== true
-            ) {
+            if ($zip->open($zipFile->getRealPath()) !== true) {
                 return response()->json([
                     'message' => 'ZIP tidak valid',
                 ], 400);
             }
+
+            // Zip Slip protection: validate all entry paths before extraction
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entryName = $zip->getNameIndex($i);
+                $resolved = realpath($extractPath . '/' . $entryName);
+                if ($resolved === false || !str_starts_with($resolved, realpath($extractPath))) {
+                    $zip->close();
+                    return response()->json(['message' => 'ZIP berisi path tidak valid'], 400);
+                }
+            }
+
             $zip->extractTo($extractPath);
             $zip->close();
 
@@ -63,25 +72,27 @@ class SyncController extends Controller
                 }
             }
 
-            $this->importSession(
-                $metadata['session']
-            );
+            DB::transaction(function () use ($metadata, $extractPath) {
+                $this->importSession(
+                    $metadata['session']
+                );
 
-            $this->importTrackPoints(
-                $metadata['track_points'],
-                $metadata['session']['id']
-            );
+                $this->importTrackPoints(
+                    $metadata['track_points'],
+                    $metadata['session']['id']
+                );
 
-            $this->importEvents(
-                $metadata['events'],
-                $metadata['session']['id']
-            );
+                $this->importEvents(
+                    $metadata['events'],
+                    $metadata['session']['id']
+                );
 
-            $this->importPhotos(
-                $metadata['photos'],
-                $extractPath,
-                $metadata['session']['id'],
-            );
+                $this->importPhotos(
+                    $metadata['photos'],
+                    $extractPath,
+                    $metadata['session']['id'],
+                );
+            });
 
             return response()->json([
                 'message' => 'Sinkronisasi berhasil',
@@ -143,12 +154,18 @@ class SyncController extends Controller
             mkdir($targetDir, 0777, true);
         }
 
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+
         foreach ($photos as $photo) {
 
             $source = $extractPath . '/photos/' . $photo['filename'];
             $target = $targetDir . '/' . $photo['filename'];
 
             if (file_exists($source)) {
+                $mime = mime_content_type($source);
+                if (!in_array($mime, $allowedMimes, true)) {
+                    continue;
+                }
                 copy($source, $target);
             }
 
