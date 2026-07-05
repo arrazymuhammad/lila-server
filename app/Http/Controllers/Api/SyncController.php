@@ -51,11 +51,10 @@ class SyncController extends Controller
                 return $this->error('ZIP tidak valid', 400, 'INVALID_ZIP');
             }
 
-            // Zip Slip protection: validate all entry paths before extraction
+            // Zip Slip protection: check entry names for directory traversal before extraction
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $entryName = $zip->getNameIndex($i);
-                $resolved = realpath($extractPath . '/' . $entryName);
-                if ($resolved === false || !str_starts_with($resolved, realpath($extractPath))) {
+                if (str_contains($entryName, '..') || str_starts_with($entryName, '/')) {
                     $zip->close();
                     Log::warning('Sync: zip slip detected', ['entry' => $entryName, 'ip' => $ip]);
                     return $this->error('ZIP berisi path tidak valid', 400, 'ZIP_SLIP_DETECTED');

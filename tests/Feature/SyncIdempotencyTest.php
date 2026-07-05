@@ -18,47 +18,56 @@ class SyncIdempotencyTest extends TestCase
     {
         parent::setUp();
 
-        Schema::create('tracking_sessions', function ($table) {
-            $table->string('id')->primary();
-            $table->string('title')->nullable();
-            $table->dateTime('start_time');
-            $table->dateTime('end_time')->nullable();
-            $table->float('distance')->default(0);
-            $table->integer('duration_seconds')->default(0);
-            $table->string('status')->default('draft');
-        });
+        // Guard: migrations may have already created these tables via RefreshDatabase.
+        if (!Schema::hasTable('tracking_sessions')) {
+            Schema::create('tracking_sessions', function ($table) {
+                $table->string('id')->primary();
+                $table->string('title')->nullable();
+                $table->dateTime('start_time');
+                $table->dateTime('end_time')->nullable();
+                $table->float('distance')->default(0);
+                $table->integer('duration_seconds')->default(0);
+                $table->string('status')->default('draft');
+            });
+        }
 
-        Schema::create('track_points', function ($table) {
-            $table->string('id')->primary()->autoIncrement();
-            $table->string('session_id');
-            $table->float('latitude');
-            $table->float('longitude');
-            $table->dateTime('timestamp');
-        });
+        if (!Schema::hasTable('track_points')) {
+            Schema::create('track_points', function ($table) {
+                $table->string('id')->primary()->autoIncrement();
+                $table->string('session_id');
+                $table->float('latitude');
+                $table->float('longitude');
+                $table->dateTime('timestamp');
+            });
+        }
 
-        Schema::create('activity_events', function ($table) {
-            $table->string('id')->primary();
-            $table->string('session_id');
-            $table->string('title')->nullable();
-            $table->text('description')->nullable();
-            $table->float('latitude');
-            $table->float('longitude');
-            $table->dateTime('timestamp');
-            $table->string('status')->default('draft');
-            $table->string('operator_category')->nullable();
-        });
+        if (!Schema::hasTable('activity_events')) {
+            Schema::create('activity_events', function ($table) {
+                $table->string('id')->primary();
+                $table->string('session_id');
+                $table->string('title')->nullable();
+                $table->text('description')->nullable();
+                $table->float('latitude');
+                $table->float('longitude');
+                $table->dateTime('timestamp');
+                $table->string('status')->default('draft');
+                $table->string('operator_category')->nullable();
+            });
+        }
 
-        Schema::create('activity_photos', function ($table) {
-            $table->string('id')->primary();
-            $table->string('session_id');
-            $table->string('event_id');
-            $table->string('file_path');
-            $table->string('filename');
-            $table->float('latitude')->nullable();
-            $table->float('longitude')->nullable();
-            $table->dateTime('timestamp')->nullable();
-            $table->boolean('selected')->default(true);
-        });
+        if (!Schema::hasTable('activity_photos')) {
+            Schema::create('activity_photos', function ($table) {
+                $table->string('id')->primary();
+                $table->string('session_id');
+                $table->string('event_id');
+                $table->string('file_path');
+                $table->string('filename');
+                $table->float('latitude')->nullable();
+                $table->float('longitude')->nullable();
+                $table->dateTime('timestamp')->nullable();
+                $table->boolean('selected')->default(true);
+            });
+        }
     }
 
     private function createDummyZip(string $sessionId): string
