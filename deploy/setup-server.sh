@@ -12,7 +12,7 @@ apt-get update && apt-get upgrade -y -q
 # Install required packages
 apt-get install -y -q nginx php8.3-fpm php8.3-mbstring php8.3-xml php8.3-curl \
     php8.3-sqlite3 php8.3-gd php8.3-intl php8.3-bcmath php8.3-apcu \
-    certbot python3-certbot-nginx unzip git supervisor
+    certbot python3-certbot-nginx unzip git supervisor fail2ban
 
 # Firewall (TASK-365)
 ufw default deny incoming
@@ -62,6 +62,24 @@ stopwaitsecs=3600
 EOF
 
 supervisorctl reread && supervisorctl update
+
+# Fail2ban configuration (TASK-366)
+cat > /etc/fail2ban/jail.d/lila-nginx.conf << 'EOF'
+[nginx-http-auth]
+enabled = true
+port    = http,https
+logpath = /var/log/nginx/error.log
+
+[nginx-limit-req]
+enabled = true
+port    = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 10
+findtime = 600
+bantime  = 3600
+EOF
+
+systemctl enable fail2ban && systemctl restart fail2ban
 
 echo "=== Server setup complete ==="
 echo "Next: sudo certbot --nginx -d yourdomain.com"
