@@ -6,6 +6,7 @@ use App\Models\ActivityEvent;
 use App\Models\ActivityPhoto;
 use App\Models\TrackingSession;
 use App\Models\TrackPoint;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
 
@@ -23,67 +24,75 @@ class SyncController extends Controller
 
         mkdir($extractPath, 0777, true);
 
-        $zip = new ZipArchive();
+        try {
+            $zip = new ZipArchive();
 
-        if (
-            $zip->open($zipFile->getRealPath())
-            !== true
-        ) {
-            return response()->json([
-                'message' => 'ZIP tidak valid',
-            ], 400);
-        }
-        $zip->extractTo($extractPath);
-        $zip->close();
-
-        $metadataFile = $extractPath . '/metadata.json';
-
-        if (!file_exists($metadataFile)) {
-            return response()->json([
-                'message' => 'metadata.json tidak ditemukan',
-            ], 400);
-        }
-
-        $metadata = json_decode(
-            file_get_contents($metadataFile),
-            true
-        );
-
-        $sessionId = $metadata['session']['id'] ?? null;
-
-        if ($sessionId) {
-            $existing = TrackingSession::find($sessionId);
-
-            if ($existing && $existing->status === 'verified') {
+            if (
+                $zip->open($zipFile->getRealPath())
+                !== true
+            ) {
                 return response()->json([
-                    'message' => 'Sesi sudah terverifikasi. Tidak dapat melakukan sinkronisasi ulang.',
-                ], 409);
+                    'message' => 'ZIP tidak valid',
+                ], 400);
+            }
+            $zip->extractTo($extractPath);
+            $zip->close();
+
+            $metadataFile = $extractPath . '/metadata.json';
+
+            if (!file_exists($metadataFile)) {
+                return response()->json([
+                    'message' => 'metadata.json tidak ditemukan',
+                ], 400);
+            }
+
+            $metadata = json_decode(
+                file_get_contents($metadataFile),
+                true
+            );
+
+            $sessionId = $metadata['session']['id'] ?? null;
+
+            if ($sessionId) {
+                $existing = TrackingSession::find($sessionId);
+
+                if ($existing && $existing->status === 'verified') {
+                    return response()->json([
+                        'message' => 'Sesi sudah terverifikasi. Tidak dapat melakukan sinkronisasi ulang.',
+                    ], 409);
+                }
+            }
+
+            $this->importSession(
+                $metadata['session']
+            );
+
+            $this->importTrackPoints(
+                $metadata['track_points'],
+                $metadata['session']['id']
+            );
+
+            $this->importEvents(
+                $metadata['events'],
+                $metadata['session']['id']
+            );
+
+            $this->importPhotos(
+                $metadata['photos'],
+                $extractPath,
+                $metadata['session']['id'],
+            );
+
+            return response()->json([
+                'message' => 'Sinkronisasi berhasil',
+            ]);
+        } finally {
+            if (is_dir($extractPath)) {
+                Storage::disk('local')->deleteDirectory(
+                    str_replace(storage_path('app/'), '', $extractPath)
+                );
             }
         }
-
-        $this->importSession(
-            $metadata['session']
-        );
-
-        $this->importTrackPoints(
-            $metadata['track_points'],
-            $metadata['session']['id']
-        );
-
-        $this->importEvents(
-            $metadata['events'],
-            $metadata['session']['id']
-        );
-
-        $this->importPhotos(
-            $metadata['photos'],
-            $extractPath,
-            $metadata['session']['id'],
-        );
-
-        return response()->json([
-            'message' => 'Sinkronisasi berhasil',
-        ]);
     }
 
     private function importSession(array $session): void
