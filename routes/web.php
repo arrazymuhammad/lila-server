@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FindingController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('verifications', [VerificationController::class, 'index']);
     Route::patch('verifications/{session}/verify', [VerificationController::class, 'verify'])->name('verifications.verify');
+    Route::post('verifications/bulk-verify', [VerificationController::class, 'bulkVerify'])->name('verifications.bulk-verify');
+
+    Route::get('export/sessions', [ExportController::class, 'sessions'])->name('export.sessions');
+    Route::get('export/findings', [ExportController::class, 'findings'])->name('export.findings');
 
     Route::prefix('verifications/findings')->group(function () {
         Route::get('/', [\App\Http\Controllers\Verification\FindingController::class, 'index']);

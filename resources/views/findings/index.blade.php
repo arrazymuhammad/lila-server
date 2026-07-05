@@ -7,10 +7,16 @@
             <h1 class="mt-1 text-3xl font-bold text-gray-950">Daftar Temuan Pengamatan</h1>
             <p class="mt-1 text-gray-500">Telusuri hasil pengamatan lapangan dari seluruh perjalanan.</p>
         </div>
-        <a href="{{ url('map') }}"
-            class="inline-flex w-fit items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
-            Buka Peta
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('export.findings') }}"
+                class="inline-flex w-fit items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                Export CSV
+            </a>
+            <a href="{{ url('map') }}"
+                class="inline-flex w-fit items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                Buka Peta
+            </a>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

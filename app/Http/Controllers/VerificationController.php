@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\TrackingSession;
 use App\Models\VerificationAuditTrail;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class VerificationController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = TrackingSession::query()
             ->whereIn('status', ['submitted', 'rejected'])
@@ -21,6 +23,14 @@ class VerificationController extends Controller
 
         if ($request->filled('status')) {
             $query->where('status', (string) $request->string('status'));
+        }
+
+        // TASK-128: Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('start_time', '>=', $request->string('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('start_time', '<=', $request->string('date_to'));
         }
 
         $sessions = $query
@@ -40,7 +50,50 @@ class VerificationController extends Controller
      * Verify or reject a session. Persists rejected_reason (TASK-132)
      * and logs audit trail (TASK-133).
      */
-    public function verify(Request $request, TrackingSession $session)
+    /**
+     * TASK-140: Bulk verify or reject multiple sessions.
+     */
+    public function bulkVerify(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'session_ids' => 'required|array|min:1',
+            'session_ids.*' => 'string',
+            'action' => 'required|in:verify,reject',
+            'reason' => 'required_if:action,reject|string|nullable',
+        ]);
+
+        $action = $validated['action'];
+        $newStatus = $action === 'verify' ? 'verified' : 'rejected';
+        $reason = $validated['reason'] ?? null;
+
+        $sessions = TrackingSession::whereIn('id', $validated['session_ids'])
+            ->whereIn('status', ['submitted', 'rejected'])
+            ->get();
+
+        foreach ($sessions as $session) {
+            $oldStatus = $session->status;
+            $updateData = ['status' => $newStatus];
+            if ($newStatus === 'rejected') {
+                $updateData['rejected_reason'] = $this->sanitize($reason);
+            } else {
+                $updateData['rejected_reason'] = null;
+            }
+            $session->update($updateData);
+
+            VerificationAuditTrail::create([
+                'session_id' => $session->id,
+                'action' => 'bulk_' . $action,
+                'verifier_name' => Auth::user()?->name ?? 'system',
+                'reason' => $this->sanitize($reason),
+                'changes' => ['status' => [$oldStatus, $newStatus]],
+            ]);
+        }
+
+        $count = $sessions->count();
+        return redirect()->back()->with('success', "{$count} perjalanan berhasil di{$action}.");
+    }
+
+    public function verify(Request $request, TrackingSession $session): RedirectResponse
     {
         $validated = $request->validate([
             'action' => 'required|in:verify,reject',
