@@ -99,6 +99,7 @@ class SyncController extends Controller
 
     private function importTrackPoints(array $trackPoints, string $sessionId): void
     {
+        TrackPoint::where('session_id', $sessionId)->delete();
         foreach ($trackPoints as $trackPoint) {
             $trackPoint['session_id'] = $sessionId;
             TrackPoint::create($trackPoint);
