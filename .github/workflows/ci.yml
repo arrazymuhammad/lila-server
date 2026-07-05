@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, gemini-phase2 ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  web-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app/web
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, zip, gd, pcntl
+          coverage: none
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Generate Key
+        run: php artisan key:generate
+      - name: Run PHPUnit Tests
+        run: php artisan test
+
+  mobile-analyze:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.x'
+      - name: Install Dependencies
+        run: flutter pub get
+      - name: Analyze Code
+        run: flutter analyze
+      - name: Run Tests
+        run: flutter test
