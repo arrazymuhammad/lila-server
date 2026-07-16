@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\SyncController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:60,1')->group(function () {
-    Route::post('sync', [SyncController::class, 'activity']);
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('sync', [SyncController::class, 'activity']);
+    });
     Route::post('sessions/status', [SessionStatusController::class, 'check']);
     Route::get('categories', [CategoryController::class, 'index']); // TASK-118
     Route::get('analytics/trends', [\App\Http\Controllers\Api\AnalyticsController::class, 'trends']); // TASK-209
