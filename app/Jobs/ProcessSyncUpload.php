@@ -42,12 +42,20 @@ class ProcessSyncUpload implements ShouldQueue
                 mkdir($extractPath, 0755, true);
             }
 
-            // Zip Slip guard: ensure each entry resolves within extractPath
+            // Zip Slip guard: detect directory traversal before extraction
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $name = $zip->getNameIndex($i);
                 if ($name === false) continue;
-                $real = realpath($extractPath . '/' . $name);
-                if ($real === false || !str_starts_with($real, realpath($extractPath))) continue;
+                
+                // Prevent path traversal
+                if (str_contains($name, '..') || str_starts_with($name, '/') || str_starts_with($name, '\')) {
+                    Log::warning('SyncUpload: path traversal attempt detected in zip', [
+                        'session_id' => $this->sessionId,
+                        'entry' => $name
+                    ]);
+                    continue;
+                }
+                
                 $zip->extractTo($extractPath, $name);
             }
             $zip->close();
