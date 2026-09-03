@@ -36,7 +36,7 @@
         <form action="{{ route('verifications.findings.verify', ['session' => $session->id, 'event' => $event->id]) }}" method="POST">
             @csrf
             @method('PATCH')
-            
+
             @error('action')
                 <div class="mb-6 rounded-lg bg-rose-50 p-4 border border-rose-200">
                     <div class="flex items-center gap-3">
@@ -56,8 +56,8 @@
                             <input type="text" name="title" value="{{ $event->title }}" required class="w-full font-bold text-gray-950 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 shadow-sm">
                             <p class="mt-1 text-[10px] text-gray-400">Judul asli yang diinput oleh petugas lapangan.</p>
                         </div>
-                        <div class="relative" x-data="{ 
-                            isOpen: false, 
+                        <div class="relative" x-data="{
+                            isOpen: false,
                             search: '{{ addslashes($event->operator_category ?? '') }}',
                             options: @js($suggestedCategories),
                             get filteredOptions() {
@@ -74,7 +74,7 @@
                             <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Kategori Baku (Operator)</label>
                             <div class="relative">
                                 <input type="text" name="operator_category" required x-model="search" @focus="isOpen = true" @click.away="isOpen = false" placeholder="Ketik atau pilih kategori..." class="w-full font-bold text-gray-950 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 shadow-sm" autocomplete="off">
-                                
+
                                 <div x-show="isOpen && filteredOptions.length > 0" x-transition style="display: none;" class="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                                     <template x-for="option in filteredOptions" :key="option">
                                         <div @click="selectOption(option)" class="relative cursor-pointer select-none py-2 px-3 text-gray-900 hover:bg-indigo-600 hover:text-white transition">
@@ -86,8 +86,8 @@
                             <p class="mt-1 text-[10px] text-gray-400">Wajib diisi. Pilih dari saran agar penamaan seragam untuk analisis.</p>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                         <div class="rounded-lg bg-gray-50 p-4 border border-gray-100">
                             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Waktu Temuan</div>
                             <div class="mt-2 font-bold text-gray-950">{{ optional($event->timestamp)->format('d M Y, H:i') ?? '-' }}</div>
@@ -102,6 +102,10 @@
                             <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Jumlah Foto</div>
                             <div class="mt-2 font-bold text-gray-950">{{ $event->photos->count() }}</div>
                         </div>
+                        <div class="rounded-lg bg-gray-50 p-4 border border-gray-100">
+                            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Dikirim Oleh</div>
+                            <div class="mt-2 font-bold text-gray-950">{{ $event->mobileUser->name ?? 'Tidak diketahui' }}</div>
+                        </div>
                     </div>
 
                     <div class="mt-6 flex-1 flex flex-col">
@@ -109,6 +113,16 @@
                         <textarea name="description" rows="5" class="w-full flex-1 rounded-lg border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3">{{ $event->description }}</textarea>
                         <p class="text-xs text-gray-400 mt-2">Anda dapat memperbaiki salah eja atau menyesuaikan judul dan deskripsi sebelum menyetujui temuan.</p>
                     </div>
+
+                    @if ($event->voice_note_path)
+                        <div class="mt-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
+                            <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Rekaman Suara Lapangan</div>
+                            <audio controls class="w-full mb-3" src="{{ url($event->voice_note_path) }}"></audio>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Transkripsi Suara</label>
+                            <textarea name="voice_note_transcription" rows="3" placeholder="Tulis hasil transkripsi dari rekaman suara..." class="w-full rounded-lg border-gray-300 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3">{{ old('voice_note_transcription', $event->voice_note_transcription) }}</textarea>
+                            <p class="text-[10px] text-gray-400 mt-1">Durasi: {{ $event->voice_note_duration_seconds ? $event->voice_note_duration_seconds . ' detik' : '-' }}{{ $event->transcribedBy ? ' • Sudah ditranskripsi' : '' }}</p>
+                        </div>
+                    @endif
                 </section>
 
                 <section class="flex flex-col gap-4">
@@ -126,8 +140,8 @@
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
                     @forelse ($event->photos as $photo)
                         <div class="relative group block overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition hover:border-indigo-500 shadow-sm">
-                            <button type="button" 
-                                @click="isPhotoModalOpen = true; currentPhotoUrl = '{{ url($photo->file_path) }}'; currentPhotoName = '{{ $photo->filename ?? 'Foto' }}'" 
+                            <button type="button"
+                                @click="isPhotoModalOpen = true; currentPhotoUrl = '{{ url($photo->file_path) }}'; currentPhotoName = '{{ $photo->filename ?? 'Foto' }}'"
                                 class="w-full text-left focus:outline-none">
                                 <div class="aspect-[4/3] bg-gray-100 relative">
                                     @if ($photo->thumbnail_path || $photo->file_path)
@@ -143,7 +157,7 @@
                                     </div>
                                 </div>
                             </button>
-                            
+
                             <!-- Reject Photo Checkbox -->
                             <div class="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-1.5 shadow border border-gray-200 flex items-center gap-1.5 cursor-pointer hover:bg-rose-50 transition" title="Tolak foto ini">
                                 <input type="checkbox" name="rejected_photos[]" value="{{ $photo->id }}" class="h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
@@ -162,7 +176,7 @@
                     <div class="font-bold text-gray-900">Keputusan Verifikasi</div>
                     <div class="text-sm text-gray-500">Pilih tindakan untuk temuan ini, layar akan otomatis memuat temuan berikutnya.</div>
                 </div>
-                
+
                 <div class="flex w-full md:w-auto items-center gap-3">
                     <button type="submit" name="action" value="reject" formnovalidate onclick="return confirm('Tolak temuan ini secara keseluruhan?')" class="w-full md:w-32 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 shadow-sm hover:bg-rose-100 transition focus:ring-2 focus:ring-rose-500 outline-none">
                         Tolak
@@ -180,16 +194,16 @@
             <div x-show="isPhotoModalOpen" x-transition.opacity class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm transition-opacity"></div>
             <div class="fixed inset-0 z-[9999] overflow-y-auto">
                 <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                    <div x-show="isPhotoModalOpen" 
+                    <div x-show="isPhotoModalOpen"
                          @click.away="isPhotoModalOpen = false"
-                         x-transition:enter="ease-out duration-300" 
-                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave="ease-in duration-200" 
-                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                          class="relative transform overflow-hidden rounded-xl bg-transparent text-left transition-all sm:my-8 sm:w-full sm:max-w-4xl shadow-2xl">
-                        
+
                         <div class="absolute top-4 right-4 z-10">
                             <button type="button" @click="isPhotoModalOpen = false" class="rounded-full bg-black/50 p-2 text-white hover:bg-black/70 focus:outline-none transition backdrop-blur-md">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -199,7 +213,7 @@
                         </div>
 
                         <img :src="currentPhotoUrl" :alt="currentPhotoName" class="w-full h-auto max-h-[85vh] object-contain bg-black/20 rounded-xl">
-                        
+
                         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-center">
                             <span class="text-white font-medium text-sm drop-shadow-md" x-text="currentPhotoName"></span>
                         </div>

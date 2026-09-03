@@ -83,6 +83,14 @@ class SyncController extends Controller
 
             $sessionId = $metadata['session']['id'] ?? null;
 
+            // session.id flows unvalidated into public_path() below (photos/audio storage
+            // paths) — it must be a well-formed UUID, never a raw client-controlled string,
+            // to prevent path traversal outside the intended per-session directory.
+            if (!$sessionId || !Str::isUuid($sessionId)) {
+                Log::warning('Sync: invalid session id format', ['session_id' => $sessionId, 'ip' => $ip]);
+                return $this->error('metadata.json format tidak valid', 400, 'METADATA_INVALID');
+            }
+
             if ($sessionId) {
                 $existing = TrackingSession::find($sessionId);
 
@@ -92,9 +100,14 @@ class SyncController extends Controller
                 }
             }
 
-            DB::transaction(function () use ($metadata, $extractPath, $sessionId) {
+            // Attribution is resolved server-side from the authenticated request
+            // (set by MobileUserTokenMiddleware), never trusted from client JSON.
+            $authenticatedMobileUserId = request()->attributes->get('mobile_user_id');
+
+            DB::transaction(function () use ($metadata, $extractPath, $sessionId, $authenticatedMobileUserId) {
                 $this->importSession(
-                    $metadata['session']
+                    $metadata['session'],
+                    $authenticatedMobileUserId
                 );
 
                 $this->importTrackPoints(
@@ -104,7 +117,9 @@ class SyncController extends Controller
 
                 $this->importEvents(
                     $metadata['events'],
-                    $metadata['session']['id']
+                    $extractPath,
+                    $metadata['session']['id'],
+                    $authenticatedMobileUserId
                 );
 
                 $this->importPhotos(
@@ -144,14 +159,21 @@ class SyncController extends Controller
         return $value !== null ? strip_tags($value) : null;
     }
 
-    private function importSession(array $session): void
+    private function importSession(array $session, ?string $mobileUserId): void
     {
+        // Explicit allowlist — never spread the raw client array (it could contain
+        // a client-controlled `user_id`, which is fillable on TrackingSession and
+        // would otherwise let a tampered client attribute a session to any admin user).
         TrackingSession::updateOrCreate(
             ['id' => $session['id']],
             [
-                ...$session,
                 'title' => $this->sanitize($session['title'] ?? null),
-                'status' => 'submitted'
+                'start_time' => $session['start_time'] ?? null,
+                'end_time' => $session['end_time'] ?? null,
+                'distance' => $session['distance'] ?? 0,
+                'duration_seconds' => $session['duration_seconds'] ?? 0,
+                'mobile_user_id' => $mobileUserId,
+                'status' => 'submitted',
             ]
         );
     }
@@ -179,23 +201,70 @@ class SyncController extends Controller
         }
     }
 
-    private function importEvents(array $events, string $sessionId): void
+    private function importEvents(array $events, string $extractPath, string $sessionId, ?string $mobileUserId): void
     {
-        foreach ($events as $event) {
-            $event['session_id'] = $sessionId;
-            // TASK-120: Sanitize text fields against XSS
-            $event['title'] = $this->sanitize($event['title'] ?? null);
-            $event['description'] = $this->sanitize($event['description'] ?? null);
-            $event['operator_category'] = $this->sanitize($event['operator_category'] ?? null);
+        $targetAudioDir = public_path("activity-voice-notes/{$sessionId}");
 
-            $existing = ActivityEvent::find($event['id']);
-            if (!$existing) {
-                $event['status'] = 'submitted';
+        // Strict allowlist: filename MUST end in .m4a AND sniffed MIME must be a
+        // plausible audio/MP4-container type. Both conditions required (AND, not OR) —
+        // a filename-only check is trivially bypassable to upload arbitrary content.
+        $allowedMimes = ['audio/mp4', 'audio/m4a', 'audio/x-m4a', 'audio/aac', 'video/mp4'];
+
+        foreach ($events as $eventData) {
+            $eventId = $eventData['id'];
+            $audioFilename = $eventData['audioFilename'] ?? null;
+            $audioDurationSeconds = $eventData['audioDurationSeconds'] ?? null;
+
+            $voiceNotePath = null;
+            if ($audioFilename) {
+                $sourceAudio = $extractPath . '/audio/' . $audioFilename;
+                $hasAllowedExtension = str_ends_with(strtolower($audioFilename), '.m4a');
+                if ($hasAllowedExtension && file_exists($sourceAudio) && filesize($sourceAudio) <= 10 * 1024 * 1024) {
+                    $mime = mime_content_type($sourceAudio);
+                    if (in_array($mime, $allowedMimes, true)) {
+                        if (!is_dir($targetAudioDir)) {
+                            mkdir($targetAudioDir, 0777, true);
+                        }
+                        $targetAudio = $targetAudioDir . '/' . $audioFilename;
+                        copy($sourceAudio, $targetAudio);
+                        $voiceNotePath = "activity-voice-notes/{$sessionId}/{$audioFilename}";
+                    }
+                }
+            }
+
+            $existing = ActivityEvent::find($eventId);
+
+            $updateData = [
+                'session_id' => $sessionId,
+                'mobile_user_id' => $mobileUserId,
+                'title' => $this->sanitize($eventData['title'] ?? null),
+                'description' => $this->sanitize($eventData['description'] ?? null),
+                'operator_category' => $this->sanitize($eventData['operator_category'] ?? null),
+                'latitude' => $eventData['latitude'],
+                'longitude' => $eventData['longitude'],
+                'timestamp' => $eventData['timestamp'],
+                'status' => $existing ? $existing->status : 'submitted',
+            ];
+
+            if ($voiceNotePath) {
+                // A fresh audio file was uploaded this sync — path and duration go together.
+                $updateData['voice_note_path'] = $voiceNotePath;
+                $updateData['voice_note_duration_seconds'] = $audioDurationSeconds;
+            } elseif ($existing) {
+                // No audio in this payload — preserve whatever was already stored,
+                // don't let an incremental resync silently wipe the known duration.
+                $updateData['voice_note_duration_seconds'] = $existing->voice_note_duration_seconds;
+            }
+
+            // ponytail: voice_note_transcription ceiling is manual reviewer form; sync MUST NOT overwrite existing transcription or transcribed_by
+            if ($existing) {
+                $updateData['voice_note_transcription'] = $existing->voice_note_transcription;
+                $updateData['transcribed_by'] = $existing->transcribed_by;
             }
 
             ActivityEvent::updateOrCreate(
-                ['id' => $event['id']],
-                $event
+                ['id' => $eventId],
+                $updateData
             );
         }
     }

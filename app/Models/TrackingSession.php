@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 #[Table('tracking_sessions', keyType: 'string', incrementing: false, timestamps: false)]
-#[Fillable(['id', 'user_id', 'title', 'start_time', 'end_time', 'distance', 'duration_seconds', 'status', 'rejected_reason'])]
+#[Fillable(['id', 'user_id', 'mobile_user_id', 'title', 'start_time', 'end_time', 'distance', 'duration_seconds', 'status', 'rejected_reason'])]
 class TrackingSession extends Model
 {
     use HasUuids;
@@ -22,6 +22,11 @@ class TrackingSession extends Model
             'distance' => 'float',
             'duration_seconds' => 'integer',
         ];
+    }
+
+    public function mobileUser()
+    {
+        return $this->belongsTo(MobileUser::class, 'mobile_user_id');
     }
 
     public function trackPoints()

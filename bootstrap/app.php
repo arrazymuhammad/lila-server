@@ -16,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->api(prepend: [
             \App\Http\Middleware\ApiVersion::class,
-            \App\Http\Middleware\SyncTokenMiddleware::class,
+        ]);
+        $middleware->alias([
+            'sync_token' => \App\Http\Middleware\SyncTokenMiddleware::class,
+            'mobile_user_token' => \App\Http\Middleware\MobileUserTokenMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -9,8 +9,27 @@ use App\Models\TrackingSession;
 
 class DashboardController extends Controller
 {
+    private const RANGES = ['7d', '30d', '12m'];
+
+    private const RANGE_LABELS = [
+        '7d' => '7 Hari',
+        '30d' => '30 Hari',
+        '12m' => '12 Bulan',
+    ];
+
+    private const MONTH_LABELS_ID = [
+        1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+        7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+    ];
+
     public function index()
     {
+        $range = request('range', '7d');
+        if (!in_array($range, self::RANGES, true)) {
+            $range = '7d';
+        }
+        $rangeLabel = self::RANGE_LABELS[$range];
+        $rangeOptions = self::RANGE_LABELS;
         $totalSessions = TrackingSession::where('status', 'verified')->count();
         $totalDistance = (float) TrackingSession::where('status', 'verified')->sum('distance');
         $totalDuration = (int) TrackingSession::where('status', 'verified')->sum('duration_seconds');
@@ -45,39 +64,61 @@ class DashboardController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        $lastSevenDays = collect(range(6, 0))->map(function ($daysAgo) {
-            $date = now()->subDays($daysAgo);
+        if ($range === '12m') {
+            $periods = collect(range(11, 0))->map(function ($monthsAgo) {
+                $date = now()->subMonths($monthsAgo)->startOfMonth();
 
-            return [
-                'key' => $date->format('Y-m-d'),
-                'label' => $date->format('d M'),
-                'sessions' => 0,
-                'distance' => 0,
-                'events_count' => 0,
-            ];
-        });
+                return [
+                    'key' => $date->format('Y-m'),
+                    'label' => self::MONTH_LABELS_ID[(int) $date->format('n')] . ' ' . $date->format('y'),
+                    'sessions' => 0,
+                    'distance' => 0,
+                    'events_count' => 0,
+                ];
+            });
+            $since = now()->subMonths(11)->startOfMonth();
+        } else {
+            $daysBack = $range === '30d' ? 29 : 6;
+            $periods = collect(range($daysBack, 0))->map(function ($daysAgo) {
+                $date = now()->subDays($daysAgo);
+
+                return [
+                    'key' => $date->format('Y-m-d'),
+                    'label' => $date->format('d M'),
+                    'sessions' => 0,
+                    'distance' => 0,
+                    'events_count' => 0,
+                ];
+            });
+            $since = now()->subDays($daysBack)->startOfDay();
+        }
 
         $recentSessions = TrackingSession::query()
             ->where('status', 'verified')
             ->whereNotNull('start_time')
-            ->where('start_time', '>=', now()->subDays(6)->startOfDay())
+            ->where('start_time', '>=', $since)
             ->withCount(['events' => fn($q) => $q->where('status', 'verified')])
             ->get(['id', 'start_time', 'distance']);
 
-        $activityTrend = $lastSevenDays->map(function ($day) use ($recentSessions) {
-            $sessions = $recentSessions->filter(function ($session) use ($day) {
-                return $session->start_time?->format('Y-m-d') === $day['key'];
+        $activityTrend = $periods->map(function ($period) use ($recentSessions, $range) {
+            $sessions = $recentSessions->filter(function ($session) use ($period, $range) {
+                $key = $range === '12m'
+                    ? $session->start_time?->format('Y-m')
+                    : $session->start_time?->format('Y-m-d');
+
+                return $key === $period['key'];
             });
 
-            $day['sessions'] = $sessions->count();
-            $day['distance'] = (float) $sessions->sum('distance');
-            $day['events_count'] = (int) $sessions->sum('events_count');
+            $period['sessions'] = $sessions->count();
+            $period['distance'] = (float) $sessions->sum('distance');
+            $period['events_count'] = (int) $sessions->sum('events_count');
 
-            return $day;
+            return $period;
         });
 
         $maxTrendDistance = max(1, (float) $activityTrend->max('distance'));
         $maxTrendEvents = max(1, (int) $activityTrend->max('events_count'));
+        $maxTrendSessions = max(1, (int) $activityTrend->max('sessions'));
 
         $latestEvents = ActivityEvent::query()
             ->where('status', 'verified')
@@ -110,9 +151,13 @@ class DashboardController extends Controller
             'activityTrend',
             'maxTrendDistance',
             'maxTrendEvents',
+            'maxTrendSessions',
             'latestEvents',
             'latestPhotos',
             'highlightSession',
+            'range',
+            'rangeLabel',
+            'rangeOptions',
         ));
     }
 }

@@ -39,7 +39,12 @@
                     <div class="text-sm font-medium text-gray-500">Total Temuan Pengamatan</div>
                     <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_events']) }}</div>
                 </div>
-                <div class="rounded-lg bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700">EV</div>
+                <div class="rounded-lg bg-rose-50 p-2.5 text-rose-700">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                </div>
             </div>
             <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['events_per_session'], 1) }} temuan rata-rata per perjalanan</div>
         </div>
@@ -50,7 +55,12 @@
                     <div class="text-sm font-medium text-gray-500">Foto</div>
                     <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_photos']) }}</div>
                 </div>
-                <div class="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">PH</div>
+                <div class="rounded-lg bg-amber-50 p-2.5 text-amber-700">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.174C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.174 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                    </svg>
+                </div>
             </div>
             <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['selected_photos']) }} foto terpilih</div>
         </div>
@@ -61,7 +71,11 @@
                     <div class="text-sm font-medium text-gray-500">Total Perjalanan</div>
                     <div class="mt-2 text-3xl font-bold text-gray-950">{{ number_format($stats['total_sessions']) }}</div>
                 </div>
-                <div class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">S</div>
+                <div class="rounded-lg bg-blue-50 p-2.5 text-blue-700">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.804a1.125 1.125 0 00-1.006 0L3.622 6.24C3.24 6.43 3 6.822 3 7.247v13.06c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006-.001z" />
+                    </svg>
+                </div>
             </div>
             <div class="mt-4 text-sm text-gray-500">{{ number_format($stats['avg_distance'], 2) }} km rata-rata per perjalanan</div>
         </div>
@@ -80,41 +94,67 @@
 
     <div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2">
-            <div class="mb-5 flex items-center justify-between">
+            <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-950">Tren 7 Hari</h2>
+                    <h2 class="text-lg font-bold text-gray-950">Tren {{ $rangeLabel }}</h2>
                     <p class="text-sm text-gray-500">Jumlah temuan dan perjalanan berdasarkan tanggal mulai.</p>
                 </div>
-                <div class="text-right text-sm text-gray-500">
-                    <div class="font-semibold text-gray-900">{{ number_format($activityTrend->sum('events_count')) }} temuan</div>
-                    <div>{{ $activityTrend->sum('sessions') }} perjalanan</div>
+                <div class="flex items-center gap-4">
+                    <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                        @foreach ($rangeOptions as $key => $label)
+                            <a href="{{ url('dashboard') }}?range={{ $key }}"
+                                class="rounded-md px-3 py-1.5 text-xs font-semibold transition {{ $range === $key ? 'bg-slate-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
+                                {{ $label }}
+                            </a>
+                        @endforeach
+                    </div>
+                    <div class="text-right text-sm text-gray-500">
+                        <div class="font-semibold text-gray-900">{{ number_format($activityTrend->sum('events_count')) }} temuan</div>
+                        <div>{{ $activityTrend->sum('sessions') }} perjalanan</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex h-52 items-end gap-3">
+            <div class="mb-3 flex items-center gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-blue-600"></span> Temuan</div>
+                <div class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-emerald-500"></span> Perjalanan</div>
+            </div>
+
+            <div class="flex h-52 items-end gap-{{ $activityTrend->count() > 12 ? '1' : '3' }} overflow-x-auto">
                 @foreach ($activityTrend as $day)
                     @php
-                        $height = $day['events_count'] > 0 ? max(14, ($day['events_count'] / $maxTrendEvents) * 100) : 4;
+                        $eventsHeight = $day['events_count'] > 0 ? max(10, ($day['events_count'] / $maxTrendEvents) * 100) : 4;
+                        $sessionsHeight = $day['sessions'] > 0 ? max(10, ($day['sessions'] / $maxTrendSessions) * 100) : 4;
                     @endphp
-                    <div class="flex flex-1 flex-col items-center gap-2">
-                        <div class="flex h-36 w-full items-end rounded bg-gray-50 px-1">
-                            <div class="w-full rounded-t bg-blue-600 transition" style="height: {{ $height }}%"></div>
+                    <div class="flex flex-1 min-w-[14px] flex-col items-center gap-2" title="{{ $day['label'] }} — {{ number_format($day['events_count']) }} temuan, {{ number_format($day['sessions']) }} perjalanan">
+                        <div class="flex h-36 w-full items-end gap-0.5 rounded bg-gray-50 px-1">
+                            <div class="w-1/2 rounded-t bg-blue-600 transition" style="height: {{ $eventsHeight }}%"></div>
+                            <div class="w-1/2 rounded-t bg-emerald-500 transition" style="height: {{ $sessionsHeight }}%"></div>
                         </div>
-                        <div class="text-center">
-                            <div class="text-xs font-semibold text-gray-700">{{ $day['label'] }}</div>
-                            <div class="text-[11px] text-gray-500">{{ number_format($day['events_count']) }} temuan</div>
-                        </div>
+                        @if ($activityTrend->count() <= 12)
+                            <div class="text-center">
+                                <div class="text-xs font-semibold text-gray-700">{{ $day['label'] }}</div>
+                                <div class="text-[11px] text-gray-500">{{ number_format($day['events_count']) }}/{{ number_format($day['sessions']) }}</div>
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>
+
+            @if ($activityTrend->count() > 12)
+                <div class="mt-2 flex justify-between text-xs text-gray-500">
+                    <span>{{ $activityTrend->first()['label'] }}</span>
+                    <span>{{ $activityTrend->last()['label'] }}</span>
+                </div>
+            @endif
         </section>
 
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <h2 class="text-lg font-bold text-gray-950">Kesehatan Data</h2>
             <div class="mt-5 grid grid-cols-2 gap-3">
                 <div class="rounded-lg bg-gray-50 p-4">
-                    <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Track Point</div>
-                    <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($stats['total_track_points']) }}</div>
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Rata-rata Jarak</div>
+                    <div class="mt-2 text-2xl font-bold text-gray-950">{{ number_format($stats['avg_distance'], 2) }} km</div>
                 </div>
                 <div class="rounded-lg bg-gray-50 p-4">
                     <div class="text-xs font-medium uppercase tracking-wide text-gray-500">Avg Durasi</div>

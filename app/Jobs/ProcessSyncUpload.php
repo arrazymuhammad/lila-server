@@ -46,16 +46,16 @@ class ProcessSyncUpload implements ShouldQueue
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $name = $zip->getNameIndex($i);
                 if ($name === false) continue;
-                
+
                 // Prevent path traversal
-                if (str_contains($name, '..') || str_starts_with($name, '/') || str_starts_with($name, '\')) {
+                if (str_contains($name, '..') || str_starts_with($name, '/') || str_starts_with($name, '\\')) {
                     Log::warning('SyncUpload: path traversal attempt detected in zip', [
                         'session_id' => $this->sessionId,
                         'entry' => $name
                     ]);
                     continue;
                 }
-                
+
                 $zip->extractTo($extractPath, $name);
             }
             $zip->close();

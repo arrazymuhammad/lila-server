@@ -55,7 +55,7 @@ class FindingController extends Controller
                 ->with('success', 'Semua temuan di perjalanan "' . ($session->title ?? 'Tanpa Nama') . '" telah tuntas divalidasi!');
         }
 
-        $event->load('photos');
+        $event->load(['photos', 'mobileUser', 'transcribedBy']);
 
         $remainingCount = $session->events()->where('status', 'submitted')->count();
         $totalCount = $session->events()->count();
@@ -77,6 +77,7 @@ class FindingController extends Controller
             'title' => 'nullable|string|max:255',
             'operator_category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'voice_note_transcription' => 'nullable|string',
             'rejected_photos' => 'nullable|array',
             'rejected_photos.*' => 'string|exists:activity_photos,id'
         ]);
@@ -89,11 +90,18 @@ class FindingController extends Controller
             }
         }
 
-        $event->update([
+        $updateData = [
             'status' => $validated['action'] === 'verify' ? 'verified' : 'rejected',
             'title' => $validated['title'] ?? $event->title,
             'description' => $validated['description'] ?? $event->description,
-        ]);
+        ];
+
+        if (array_key_exists('voice_note_transcription', $validated)) {
+            $updateData['voice_note_transcription'] = $validated['voice_note_transcription'];
+            $updateData['transcribed_by'] = !empty($validated['voice_note_transcription']) ? auth()->id() : null;
+        }
+
+        $event->update($updateData);
 
         if (array_key_exists('operator_category', $validated)) {
             $event->operator_category = $validated['operator_category'];

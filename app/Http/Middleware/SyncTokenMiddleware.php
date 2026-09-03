@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Env;
 
 /**
  * TASK-101: API Token Authentication for mobile sync
@@ -18,7 +17,7 @@ class SyncTokenMiddleware
     public function handle(Request $request, Closure $next)
     {
         $token = $request->header('X-Sync-Token');
-        $expected = Env::get('SYNC_TOKEN', '');
+        $expected = config('services.sync.token', '');
 
         if ($expected === '') {
             // SYNC_TOKEN not configured — log warning but allow (dev mode)
