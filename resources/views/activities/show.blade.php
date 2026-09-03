@@ -65,6 +65,58 @@
                     </div>
                 </div>
             </div>
+
+            @if (in_array($session->status, ['submitted', 'rejected']))
+                <div class="border-t border-gray-100 bg-amber-50 px-4 py-3" x-data="{ showRejectForm: false }">
+                    <div x-show="!showRejectForm" class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="text-sm font-semibold text-amber-800">
+                            @if ($session->status === 'rejected')
+                                Perjalanan ini ditolak.
+                                @if ($session->rejected_reason)
+                                    <span class="font-normal text-amber-700">Alasan: {{ $session->rejected_reason }}</span>
+                                @endif
+                            @else
+                                Perjalanan ini menunggu verifikasi.
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="showRejectForm = true"
+                                class="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50">
+                                Tolak
+                            </button>
+                            <form action="{{ route('verifications.verify', $session) }}" method="POST" onsubmit="return confirm('Verifikasi perjalanan ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="action" value="verify">
+                                <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                                    Approve
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <form x-show="showRejectForm" style="display: none;" action="{{ route('verifications.verify', $session) }}" method="POST"
+                        class="flex flex-wrap items-end gap-3">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="action" value="reject">
+                        <label class="min-w-[240px] flex-1">
+                            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-700">Alasan Penolakan</span>
+                            <textarea name="reason" required rows="2"
+                                class="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100"></textarea>
+                        </label>
+                        <div class="flex gap-2">
+                            <button type="button" @click="showRejectForm = false"
+                                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+                                Batal
+                            </button>
+                            <button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">
+                                Kirim Penolakan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            @endif
         </header>
 
         <main class="flex min-h-0 flex-1 gap-3">

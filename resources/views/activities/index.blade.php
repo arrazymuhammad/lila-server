@@ -130,6 +130,10 @@
     @endphp
     <div x-show="viewMode === 'grid'" class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
         @forelse ($sessions as $session)
+            @php
+                $sessionEventsDisplay = $session->status === 'verified' ? $session->verified_events_count : $session->events_count;
+                $sessionPhotosDisplay = $session->status === 'verified' ? $session->verified_photos_count : $session->photos_count;
+            @endphp
             <a href="{{ url('activities', $session) }}"
                 class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
                 <div class="border-b border-gray-100 bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white">
@@ -166,11 +170,11 @@
                         </div>
                         <div class="rounded-lg bg-gray-50 p-3">
                             <div class="text-xs text-gray-500">Temuan</div>
-                            <div class="mt-1 text-sm font-bold text-gray-900">{{ $session->events_count }}</div>
+                            <div class="mt-1 text-sm font-bold text-gray-900">{{ $sessionEventsDisplay }}</div>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-3">
                             <div class="text-xs text-gray-500">Foto</div>
-                            <div class="mt-1 text-sm font-bold text-gray-900">{{ $session->photos_count }}</div>
+                            <div class="mt-1 text-sm font-bold text-gray-900">{{ $sessionPhotosDisplay }}</div>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-3">
                             <div class="text-xs text-gray-500">Point</div>
@@ -218,6 +222,10 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse ($sessions as $session)
+                        @php
+                            $sessionEventsDisplay = $session->status === 'verified' ? $session->verified_events_count : $session->events_count;
+                            $sessionPhotosDisplay = $session->status === 'verified' ? $session->verified_photos_count : $session->photos_count;
+                        @endphp
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4">
                                 <div class="font-bold text-gray-900">{{ $session->title ?? 'Perjalanan Tanpa Nama' }}</div>
@@ -227,8 +235,8 @@
                             <td class="px-6 py-4">{{ optional($session->start_time)->format('d M Y, H:i') ?? '-' }}</td>
                             <td class="px-6 py-4 text-center font-medium">{{ number_format($session->distance, 2) }} km</td>
                             <td class="px-6 py-4 text-center">{{ $formatDuration($session->duration_seconds) }}</td>
-                            <td class="px-6 py-4 text-center font-bold">{{ $session->events_count }}</td>
-                            <td class="px-6 py-4 text-center">{{ $session->photos_count }}</td>
+                            <td class="px-6 py-4 text-center font-bold">{{ $sessionEventsDisplay }}</td>
+                            <td class="px-6 py-4 text-center">{{ $sessionPhotosDisplay }}</td>
                             <td class="px-6 py-4 text-right">
                                 <a href="{{ url('activities', $session) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800 transition">
                                     Detail

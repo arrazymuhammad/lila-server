@@ -10,12 +10,17 @@ class ActivityController extends Controller
 {
     public function index(Request $request)
     {
+        // Shows every session regardless of status (submitted/verified/rejected), distinguished
+        // by status badge. Counts are dual: raw totals (everything as-submitted, relevant while
+        // still pending review) vs. verified-only totals (relevant once approved — 0 is fine
+        // there, since per-finding verification is a separate, later step).
         $query = TrackingSession::query()
-            ->where('status', 'verified')
             ->with('mobileUser')
             ->withCount([
-                'events' => fn($q) => $q->where('status', 'verified'),
-                'photos' => fn($q) => $q->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified')),
+                'events as events_count',
+                'photos as photos_count',
+                'events as verified_events_count' => fn($q) => $q->where('status', 'verified'),
+                'photos as verified_photos_count' => fn($q) => $q->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified')),
                 'trackPoints',
             ]);
 
@@ -24,7 +29,7 @@ class ActivityController extends Controller
         }
 
         if ($request->boolean('has_findings')) {
-            $query->whereHas('events', fn($q) => $q->where('status', 'verified'));
+            $query->whereHas('events');
         }
 
         match ($request->input('sort')) {
@@ -77,11 +82,20 @@ class ActivityController extends Controller
 
     public function show(TrackingSession $session)
     {
+        // Verified sessions show only verified/selected data (per-finding review is a
+        // separate step, so 0 here is expected). Sessions still pending review show
+        // everything as-submitted, so the reviewer can see the full picture before deciding.
+        $isVerified = $session->status === 'verified';
+
         $session->load([
             'mobileUser',
             'trackPoints' => fn ($query) => $query->orderBy('timestamp'),
-            'photos' => fn ($query) => $query->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified'))->latest('timestamp'),
-            'events' => fn ($query) => $query->where('status', 'verified')->with(['photos' => fn ($q) => $q->where('selected', true)->latest('timestamp')]),
+            'photos' => fn ($query) => $isVerified
+                ? $query->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified'))->latest('timestamp')
+                : $query->latest('timestamp'),
+            'events' => fn ($query) => $isVerified
+                ? $query->where('status', 'verified')->with(['photos' => fn ($q) => $q->where('selected', true)->latest('timestamp')])
+                : $query->with('photos'),
         ]);
 
         $summary = [

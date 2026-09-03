@@ -109,6 +109,7 @@
                             <input type="checkbox" onclick="document.querySelectorAll('.session-cb').forEach(c => c.checked = this.checked); document.getElementById('selected-count').innerText = document.querySelectorAll('.session-cb:checked').length;">
                         </th>
                         <th class="px-4 py-3 font-semibold">Perjalanan</th>
+                        <th class="px-4 py-3 font-semibold">Dikirim Oleh</th>
                         <th class="px-4 py-3 font-semibold text-center">Waktu Mulai</th>
                         <th class="px-4 py-3 font-semibold text-center">Jarak</th>
                         <th class="px-4 py-3 font-semibold text-center">Data</th>
@@ -125,6 +126,9 @@
                             <td class="px-4 py-3 font-medium text-gray-900 w-1/3">
                                 <div>{{ $session->title ?? 'Perjalanan Tanpa Nama' }}</div>
                                 <div class="mt-1 text-xs text-gray-500 font-normal">ID: {{ Str::limit($session->id, 8) }}</div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                {{ $session->mobileUser->name ?? 'Tidak diketahui' }}
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap">
                                 {{ optional($session->start_time)->format('d M Y, H:i') ?? '-' }}
@@ -168,7 +172,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 Tidak ada data perjalanan yang menunggu verifikasi.
                             </td>
                         </tr>

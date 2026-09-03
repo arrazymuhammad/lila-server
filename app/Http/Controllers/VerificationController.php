@@ -15,6 +15,7 @@ class VerificationController extends Controller
     {
         $query = TrackingSession::query()
             ->whereIn('status', ['submitted', 'rejected'])
+            ->with('mobileUser')
             ->withCount(['events', 'photos', 'trackPoints']);
 
         if ($request->filled('q')) {
