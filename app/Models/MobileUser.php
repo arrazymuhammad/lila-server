@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 #[Table('mobile_users', keyType: 'string', incrementing: false)]
-#[Fillable(['id', 'name', 'phone', 'email', 'pin', 'auth_token', 'last_login_at'])]
+#[Fillable(['id', 'name', 'phone', 'email', 'pin', 'auth_token', 'last_login_at', 'is_active'])]
 class MobileUser extends Model
 {
     use HasUuids;
@@ -22,6 +22,7 @@ class MobileUser extends Model
     {
         return [
             'last_login_at' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 

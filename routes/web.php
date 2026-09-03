@@ -47,4 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('maps', [MapController::class, 'index']);
 
     Route::resource('categories', \App\Http\Controllers\FindingCategoryController::class)->only(['index', 'store', 'destroy']);
+
+    Route::get('mobile-users', [\App\Http\Controllers\MobileUserController::class, 'index'])->name('mobile-users.index');
+    Route::patch('mobile-users/{mobileUser}/toggle-active', [\App\Http\Controllers\MobileUserController::class, 'toggleActive'])->name('mobile-users.toggle-active');
 });

@@ -54,6 +54,9 @@
                 <a href="{{ url('categories') }}" class="block px-4 py-3 rounded {{ request()->is('categories*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
                     Kategori Temuan
                 </a>
+                <a href="{{ url('mobile-users') }}" class="block px-4 py-3 rounded {{ request()->is('mobile-users*') ? 'bg-slate-800 font-semibold' : 'hover:bg-slate-800' }}">
+                    Pengguna Mobile
+                </a>
             </nav>
 
             <!-- User Info & Logout -->

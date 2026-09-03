@@ -17,10 +17,26 @@ class MobileUserTokenMiddleware
             $hashedToken = hash('sha256', $token);
             $user = MobileUser::where('auth_token', $hashedToken)->first();
 
-            if ($user) {
+            if ($user && $user->is_active) {
                 $request->attributes->set('mobile_user_id', $user->id);
                 $request->attributes->set('mobile_user', $user);
                 return $next($request);
+            }
+
+            // A deactivated account is a deliberate admin action to stop this user —
+            // hard-reject rather than falling through to soft mode (which would let
+            // their sync through anonymously, defeating the point of deactivating them).
+            if ($user && !$user->is_active) {
+                Log::warning('MobileUserTokenMiddleware: Deactivated account attempted sync', [
+                    'mobile_user_id' => $user->id,
+                    'ip' => $request->ip(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'code' => 'ACCOUNT_DEACTIVATED',
+                    'message' => 'Akun Anda telah dinonaktifkan. Hubungi admin.',
+                ], 403);
             }
 
             Log::warning('MobileUserTokenMiddleware: Invalid X-Mobile-Token provided', [

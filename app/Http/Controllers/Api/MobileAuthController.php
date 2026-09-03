@@ -79,6 +79,14 @@ class MobileAuthController extends Controller
             ], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'code' => 'ACCOUNT_DEACTIVATED',
+                'message' => 'Akun Anda telah dinonaktifkan. Hubungi admin.',
+            ], 403);
+        }
+
         $plainToken = Str::random(64);
         $user->auth_token = hash('sha256', $plainToken);
         $user->last_login_at = now();
