@@ -141,6 +141,10 @@
                             <h2 class="mt-2 truncate text-xl font-bold">
                             {{ $session->title ?? 'Perjalanan Tanpa Nama' }}
                             </h2>
+                            <div class="mt-1 flex items-center gap-1.5 text-xs text-slate-300">
+                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                                <span class="truncate">{{ $session->mobileUser->name ?? 'Tidak diketahui' }}</span>
+                            </div>
                         </div>
                         <div class="shrink-0 rounded-lg bg-white/10 px-3 py-2 text-right">
                             <div class="text-xs text-slate-300">Jarak</div>
@@ -203,6 +207,7 @@
                 <thead class="bg-gray-50 text-xs font-semibold uppercase text-gray-500 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-4">Informasi Perjalanan</th>
+                        <th class="px-6 py-4">Dikirim Oleh</th>
                         <th class="px-6 py-4">Waktu Mulai</th>
                         <th class="px-6 py-4 text-center">Jarak</th>
                         <th class="px-6 py-4 text-center">Durasi</th>
@@ -218,6 +223,7 @@
                                 <div class="font-bold text-gray-900">{{ $session->title ?? 'Perjalanan Tanpa Nama' }}</div>
                                 <div class="mt-1"><x-status-badge :status="$session->status" /></div>
                             </td>
+                            <td class="px-6 py-4">{{ $session->mobileUser->name ?? 'Tidak diketahui' }}</td>
                             <td class="px-6 py-4">{{ optional($session->start_time)->format('d M Y, H:i') ?? '-' }}</td>
                             <td class="px-6 py-4 text-center font-medium">{{ number_format($session->distance, 2) }} km</td>
                             <td class="px-6 py-4 text-center">{{ $formatDuration($session->duration_seconds) }}</td>
@@ -232,7 +238,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="8" class="px-6 py-10 text-center text-gray-500">
                                 Tidak ada perjalanan ditemukan.
                             </td>
                         </tr>

@@ -135,11 +135,12 @@
             <section class="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold text-gray-950">Bukti Foto</h2>
-                    <span class="text-sm text-gray-500">Centang kotak merah untuk menolak foto spesifik.</span>
+                    <span class="text-sm text-gray-500">Semua foto terpilih sebagai bukti secara default — hilangkan centang untuk menolak foto tertentu.</span>
                 </div>
                 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
                     @forelse ($event->photos as $photo)
-                        <div class="relative group block overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition hover:border-indigo-500 shadow-sm">
+                        <div class="relative group block overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition hover:border-indigo-500 shadow-sm"
+                            x-data="{ selected: {{ $photo->selected ? 'true' : 'false' }} }">
                             <button type="button"
                                 @click="isPhotoModalOpen = true; currentPhotoUrl = '{{ url($photo->file_path) }}'; currentPhotoName = '{{ $photo->filename ?? 'Foto' }}'"
                                 class="w-full text-left focus:outline-none">
@@ -150,6 +151,7 @@
                                     @else
                                         <div class="flex h-full items-center justify-center text-sm font-semibold text-gray-400">No Image</div>
                                     @endif
+                                    <div class="absolute inset-0 bg-black/50 transition" x-show="!selected" style="display: none;"></div>
                                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
                                         <svg class="h-8 w-8 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -158,11 +160,16 @@
                                 </div>
                             </button>
 
-                            <!-- Reject Photo Checkbox -->
-                            <div class="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-1.5 shadow border border-gray-200 flex items-center gap-1.5 cursor-pointer hover:bg-rose-50 transition" title="Tolak foto ini">
-                                <input type="checkbox" name="rejected_photos[]" value="{{ $photo->id }}" class="h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500 cursor-pointer">
-                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">Tolak</span>
-                            </div>
+                            <!-- Selected-as-evidence checkbox: checked = kept as evidence, unchecked = rejected -->
+                            <label class="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-1.5 shadow border border-gray-200 flex items-center gap-1.5 cursor-pointer transition"
+                                :class="selected ? 'hover:bg-rose-50' : 'hover:bg-green-50'"
+                                :title="selected ? 'Foto ini terpilih sebagai bukti — klik untuk menolak' : 'Foto ini ditolak — klik untuk sertakan kembali'">
+                                <input type="checkbox" name="selected_photos[]" value="{{ $photo->id }}"
+                                    x-model="selected" {{ $photo->selected ? 'checked' : '' }}
+                                    class="h-4 w-4 rounded border-gray-300 focus:ring-2 cursor-pointer"
+                                    :class="selected ? 'text-green-600 focus:ring-green-500' : 'text-rose-600 focus:ring-rose-500'">
+                                <span class="text-[10px] font-bold uppercase tracking-wide" :class="selected ? 'text-green-600' : 'text-rose-600'" x-text="selected ? 'Terpilih' : 'Ditolak'"></span>
+                            </label>
                         </div>
                     @empty
                         <div class="col-span-full rounded-lg bg-gray-50 p-6 text-center text-sm text-gray-500">Belum ada foto yang dilampirkan untuk temuan ini.</div>

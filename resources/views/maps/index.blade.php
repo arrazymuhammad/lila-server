@@ -25,36 +25,36 @@
                     <p class="mt-1 text-gray-500">Seluruh rute perjalanan pada bulan dan tahun terpilih.</p>
                 </div>
 
-                <div class="flex items-center gap-6">
-                    <label class="flex items-center cursor-pointer" title="Tampilkan heatmap temuan">
-                        <div class="relative">
+                <div class="flex flex-wrap items-center gap-4">
+                    <label class="flex shrink-0 items-center cursor-pointer" title="Tampilkan heatmap temuan (layer tambahan, marker temuan tetap muncul)">
+                        <div class="relative shrink-0">
                             <input type="checkbox" x-model="showFindingHeatmap" @change="toggleFindingHeatmap" class="sr-only">
                             <div class="block w-10 h-6 rounded-full transition" :class="showFindingHeatmap ? 'bg-purple-600' : 'bg-gray-300'"></div>
                             <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showFindingHeatmap ? 'transform translate-x-4' : ''"></div>
                         </div>
-                        <div class="ml-3 text-sm font-medium text-gray-700">
+                        <div class="ml-3 whitespace-nowrap text-sm font-medium text-gray-700">
                             Heatmap Temuan
                         </div>
                     </label>
 
-                    <label class="flex items-center cursor-pointer" title="Tampilkan heatmap perjalanan">
-                        <div class="relative">
+                    <label class="flex shrink-0 items-center cursor-pointer" title="Tampilkan heatmap perjalanan">
+                        <div class="relative shrink-0">
                             <input type="checkbox" x-model="showHeatmap" @change="toggleHeatmap" class="sr-only">
                             <div class="block w-10 h-6 rounded-full transition" :class="showHeatmap ? 'bg-rose-600' : 'bg-gray-300'"></div>
                             <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showHeatmap ? 'transform translate-x-4' : ''"></div>
                         </div>
-                        <div class="ml-3 text-sm font-medium text-gray-700">
+                        <div class="ml-3 whitespace-nowrap text-sm font-medium text-gray-700">
                             Heatmap Rute
                         </div>
                     </label>
 
-                    <label class="flex items-center cursor-pointer" title="Tampilkan temuan yang belum diverifikasi">
-                        <div class="relative">
+                    <label class="flex shrink-0 items-center cursor-pointer" title="Tampilkan temuan yang belum diverifikasi">
+                        <div class="relative shrink-0">
                             <input type="checkbox" x-model="showAllFindings" @change="toggleFindings" class="sr-only">
                             <div class="block w-10 h-6 rounded-full transition" :class="showAllFindings ? 'bg-blue-600' : 'bg-gray-300'"></div>
                             <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition" :class="showAllFindings ? 'transform translate-x-4' : ''"></div>
                         </div>
-                        <div class="ml-3 text-sm font-medium text-gray-700">
+                        <div class="ml-3 whitespace-nowrap text-sm font-medium text-gray-700">
                             Semua Temuan
                         </div>
                     </label>
@@ -351,9 +351,9 @@
                         });
                     });
 
-                    if (!this.showHeatmap && !this.showFindingHeatmap) {
-                        this.map.addLayer(this.markerCluster);
-                    }
+                    // Heatmap is always an additional overlay, never a replacement —
+                    // finding markers (with clustered count bubbles, clickable) stay visible.
+                    this.map.addLayer(this.markerCluster);
 
                     if (this.showHeatmap && heatPoints.length > 0) {
                         const heatLayer = L.heatLayer(heatPoints, {

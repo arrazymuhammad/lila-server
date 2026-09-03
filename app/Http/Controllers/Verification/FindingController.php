@@ -78,14 +78,14 @@ class FindingController extends Controller
             'operator_category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'voice_note_transcription' => 'nullable|string',
-            'rejected_photos' => 'nullable|array',
-            'rejected_photos.*' => 'string|exists:activity_photos,id'
+            'selected_photos' => 'nullable|array',
+            'selected_photos.*' => 'string|exists:activity_photos,id'
         ]);
 
         if ($validated['action'] === 'verify') {
             $totalPhotos = $event->photos()->count();
-            $rejectedCount = count($validated['rejected_photos'] ?? []);
-            if ($totalPhotos > 0 && ($totalPhotos - $rejectedCount) <= 0) {
+            $selectedCount = count($validated['selected_photos'] ?? []);
+            if ($totalPhotos > 0 && $selectedCount <= 0) {
                 return back()->withErrors(['action' => 'Temuan tidak dapat diverifikasi jika seluruh bukti fotonya ditolak. Sisakan minimal 1 foto, atau Tolak temuan ini secara keseluruhan.']);
             }
         }
@@ -108,9 +108,11 @@ class FindingController extends Controller
             $event->save();
         }
 
-        if (!empty($validated['rejected_photos'])) {
-            $event->photos()->whereIn('id', $validated['rejected_photos'])->update(['selected' => false]);
-        }
+        // Checkbox is opt-out now (checked = kept as evidence by default): unchecked
+        // boxes simply aren't submitted, so anything not in selected_photos is rejected.
+        $selectedPhotoIds = $validated['selected_photos'] ?? [];
+        $event->photos()->whereIn('id', $selectedPhotoIds)->update(['selected' => true]);
+        $event->photos()->whereNotIn('id', $selectedPhotoIds)->update(['selected' => false]);
 
         return redirect()->route('verifications.findings.review', $session);
     }

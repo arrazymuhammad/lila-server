@@ -12,6 +12,7 @@ class ActivityController extends Controller
     {
         $query = TrackingSession::query()
             ->where('status', 'verified')
+            ->with('mobileUser')
             ->withCount([
                 'events' => fn($q) => $q->where('status', 'verified'),
                 'photos' => fn($q) => $q->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified')),
@@ -77,6 +78,7 @@ class ActivityController extends Controller
     public function show(TrackingSession $session)
     {
         $session->load([
+            'mobileUser',
             'trackPoints' => fn ($query) => $query->orderBy('timestamp'),
             'photos' => fn ($query) => $query->where('selected', true)->whereHas('event', fn($e) => $e->where('status', 'verified'))->latest('timestamp'),
             'events' => fn ($query) => $query->where('status', 'verified')->with(['photos' => fn ($q) => $q->where('selected', true)->latest('timestamp')]),
